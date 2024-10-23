@@ -21,11 +21,15 @@ kotlin {
          implementation(compose.components.uiToolingPreview)
          implementation(libs.androidx.lifecycle.viewmodel)
          implementation(libs.androidx.lifecycle.runtime.compose)
+
+         implementation(libs.androidx.navigation.compose)
+         api(libs.koin.core)
+         implementation(libs.koin.compose)
+         implementation(libs.koin.compose.viewmodel)
       }
       desktopMain.dependencies {
          implementation(compose.desktop.currentOs)
          implementation(libs.kotlinx.coroutines.swing)
-         implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
       }
    }
 }

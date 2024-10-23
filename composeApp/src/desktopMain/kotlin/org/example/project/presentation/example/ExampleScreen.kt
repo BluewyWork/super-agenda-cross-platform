@@ -1,4 +1,4 @@
-package org.example.project.presentation
+package org.example.project.presentation.example
 
 import androidx.compose.material.Button
 import androidx.compose.material.Text
