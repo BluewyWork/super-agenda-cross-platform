@@ -10,13 +10,13 @@ import androidx.compose.runtime.setValue
 
 @Composable
 fun ExampleScreen() {
-    var counter by remember { mutableStateOf(0) }
+   var counter by remember { mutableStateOf(0) }
 
-    Button(
-        onClick = {
-            counter++
-        }
-    ) {
-        Text("$counter")
-    }
+   Button(
+      onClick = {
+         counter++
+      }
+   ) {
+      Text("$counter")
+   }
 }

@@ -8,14 +8,14 @@ import org.example.project.presentation.ExampleScreen
 
 @Composable
 fun NavigationHost() {
-    val navController = rememberNavController()
+   val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = Destinations.Example.route
-    ) {
-        composable(Destinations.Example.route) {
-           ExampleScreen()
-        }
-    }
+   NavHost(
+      navController = navController,
+      startDestination = Destinations.Example.route
+   ) {
+      composable(Destinations.Example.route) {
+         ExampleScreen()
+      }
+   }
 }
