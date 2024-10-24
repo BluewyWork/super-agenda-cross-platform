@@ -1,11 +1,15 @@
 package presentation.screens.login
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import core.Destinations
 import presentation.composables.PopupDialog
@@ -39,7 +43,12 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
    val username by loginViewModel.username.collectAsState()
    val password by loginViewModel.password.collectAsState()
 
-   Column() {
+   Column(
+      modifier = Modifier
+         .fillMaxSize(),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally
+   ) {
       Text("Username")
 
       OutlinedTextField(
