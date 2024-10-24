@@ -1,8 +1,6 @@
-package org.example.project
-
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import org.example.project.core.NavigationHost
+import core.NavigationHost
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable

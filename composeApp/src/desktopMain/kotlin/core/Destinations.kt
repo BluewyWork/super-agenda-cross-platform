@@ -1,4 +1,4 @@
-package org.example.project.core
+package core
 
 sealed class Destinations(
    val route: String
