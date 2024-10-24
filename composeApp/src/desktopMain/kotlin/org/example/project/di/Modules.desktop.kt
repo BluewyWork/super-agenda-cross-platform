@@ -1,4 +1,4 @@
-package di
+package org.example.project.di
 
 import org.example.project.presentation.screens.example.ExampleDi
 import org.example.project.presentation.screens.example.ExampleViewModel
