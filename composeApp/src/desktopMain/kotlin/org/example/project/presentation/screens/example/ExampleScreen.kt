@@ -1,4 +1,4 @@
-package org.example.project.presentation.example
+package org.example.project.presentation.screens.example
 
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun ExampleScreen() {
+fun ExampleScreen(exampleViewModel: ExampleViewModel) {
    var counter by remember { mutableStateOf(0) }
 
    Button(
@@ -19,4 +19,6 @@ fun ExampleScreen() {
    ) {
       Text("$counter")
    }
+
+   Text(exampleViewModel.example())
 }
