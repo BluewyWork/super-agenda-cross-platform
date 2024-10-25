@@ -1,6 +1,8 @@
 package data.network
 
 import data.models.AdminForLoginModel
+import data.network.models.ApiResponse
+import data.network.models.TokenInResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -13,7 +15,7 @@ import kotlinx.serialization.SerializationException
 import util.NetworkError
 import util.Result
 
-class ApiClient(
+class Api(
    private val httpClient: HttpClient
 ) {
    suspend fun exampleFunction(): Result<Unit, NetworkError> {
@@ -57,7 +59,7 @@ class ApiClient(
 
       return when (response.status.value) {
          in 200..299 -> {
-            val payload = response.body<ApiResponse<TokenJson>>()
+            val payload = response.body<ApiResponse<TokenInResponse>>()
             Result.Success(payload.data.token)
          }
 

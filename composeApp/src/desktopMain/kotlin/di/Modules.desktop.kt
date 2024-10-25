@@ -1,7 +1,7 @@
 package di
 
 import data.AuthenticationRepository
-import data.network.ApiClient
+import data.network.Api
 import domain.AuthenticationUseCase
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -40,7 +40,7 @@ actual val platformModule: Module = module {
          }
       }
    }
-   singleOf(::ApiClient)
+   singleOf(::Api)
 
    singleOf(::AuthenticationRepository)
    singleOf(::AuthenticationUseCase)
