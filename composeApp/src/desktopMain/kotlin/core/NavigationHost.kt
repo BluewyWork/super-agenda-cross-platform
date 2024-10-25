@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.koin.compose.viewmodel.koinViewModel
 import presentation.screens.example.ExampleScreen
 import presentation.screens.example.ExampleViewModel
-import org.koin.compose.viewmodel.koinViewModel
-import presentation.screens.login.LoginViewModel
 import presentation.screens.login.LoginScreen
+import presentation.screens.login.LoginViewModel
 
 @Composable
 fun NavigationHost() {

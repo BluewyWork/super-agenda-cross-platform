@@ -3,6 +3,7 @@ package presentation.screens.login
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +30,7 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
       }
    }
 
-   if (isLoggedIn && popupsQueue.isEmpty() ) {
+   if (isLoggedIn && popupsQueue.isEmpty()) {
       navController.navigate(Destinations.Example.route)
    }
 
@@ -62,5 +63,17 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
          value = password,
          onValueChange = { loginViewModel.onPasswordChange(it) }
       )
+
+      val isProcessingLogin by loginViewModel.isProccesingLogin.collectAsState()
+
+      Button(
+         onClick = {
+            loginViewModel.onLoginPress()
+         },
+
+         enabled = !isProcessingLogin
+      ) {
+         Text("Login")
+      }
    }
 }
