@@ -1,15 +1,34 @@
 package data
 
+import data.database.TokenDao
+import data.database.TokenEntity
 import data.models.AdminForLoginModel
 import data.network.Api
-import util.NetworkError
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import util.AppError
+import util.AppResult
 import util.Result
 
 class AuthenticationRepository(
-   private val api: Api
+   private val api: Api,
+   private val tokenDao: TokenDao
 ) {
-   suspend fun login(username: String, password: String): Result<String, NetworkError> {
+   suspend fun getTokenFromApi(username: String, password: String): AppResult<String> {
       val adminForLoginModel = AdminForLoginModel(username, password)
       return api.login(adminForLoginModel)
+   }
+
+   suspend fun insertTokenToDatabase(): AppResult<Unit> {
+      return withContext(Dispatchers.IO) {
+         // might throw, ngl idk
+         try {
+            tokenDao.upsert(tokenEntity = TokenEntity("example_token"))
+
+            Result.Success(Unit)
+         } catch (e: Exception) {
+            Result.Error(AppError.DatabaseError.UNKNOWN)
+         }
+      }
    }
 }

@@ -6,13 +6,25 @@ plugins {
    alias(libs.plugins.compose.compiler)
 
    kotlin("plugin.serialization") version "2.0.20"
+   alias(libs.plugins.ksp)
+   alias(libs.plugins.room)
 }
 
 kotlin {
-   jvm("desktop")
+   jvm("desktop") {
+      withJava()
+   }
+
+   linuxX64() {
+      binaries {
+         executable()
+      }
+   }
 
    sourceSets {
       val desktopMain by getting
+      val commonMain by getting
+      val linuxX64Main by getting
 
       commonMain.dependencies {
          implementation(compose.runtime)
@@ -33,6 +45,10 @@ kotlin {
          implementation(libs.ktor.client.content.negotiation)
          implementation(libs.ktor.serialization.kotlinx.json)
          implementation(libs.ktor.client.okhttp)
+         implementation(libs.room.gradle.plugin)
+         implementation(libs.room.runtime)
+         implementation(libs.sqlite)
+         implementation(libs.sqlite.bundled)
       }
       desktopMain.dependencies {
          implementation(compose.desktop.currentOs)
@@ -49,6 +65,17 @@ compose.desktop {
          targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
          packageName = "org.example.project"
          packageVersion = "1.0.0"
+         modules("java.sql")
       }
    }
+}
+
+// here because it won't work with the normal common block
+dependencies {
+   add("kspCommonMainMetadata", libs.room.compiler)
+   add("kspDesktop", libs.room.compiler)
+}
+
+room {
+   schemaDirectory("$projectDir/schemas")
 }

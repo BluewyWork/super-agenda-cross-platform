@@ -1,6 +1,10 @@
 package di
 
+import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import data.AuthenticationRepository
+import data.database.AppDatabase
+import data.database.TokenDao
 import data.network.Api
 import domain.AuthenticationUseCase
 import io.ktor.client.HttpClient
@@ -17,6 +21,7 @@ import org.koin.dsl.module
 import presentation.screens.example.ExampleDi
 import presentation.screens.example.ExampleViewModel
 import presentation.screens.login.LoginViewModel
+import java.io.File
 
 actual val platformModule: Module = module {
    singleOf(::ExampleDi)
@@ -45,4 +50,18 @@ actual val platformModule: Module = module {
    singleOf(::AuthenticationRepository)
    singleOf(::AuthenticationUseCase)
    viewModelOf(::LoginViewModel)
+
+   single {
+      val dbFile = File(System.getProperty("java.io.tmpdir"), "database.db")
+
+      Room.databaseBuilder<AppDatabase>(
+         name = dbFile.absolutePath
+      )
+         .setDriver(BundledSQLiteDriver())
+         .build()
+   }
+
+   single<TokenDao> {
+      get<AppDatabase>().tokenDao()
+   }
 }

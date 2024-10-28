@@ -64,7 +64,7 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
          onValueChange = { loginViewModel.onPasswordChange(it) }
       )
 
-      val isProcessingLogin by loginViewModel.isProccesingLogin.collectAsState()
+      val isProcessingLogin by loginViewModel.isProcessingLogin.collectAsState()
 
       Button(
          onClick = {

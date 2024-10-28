@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import presentation.Constants
-import util.NetworkError
 import util.onError
 import util.onSuccess
 
@@ -29,8 +28,8 @@ class LoginViewModel(
       .onStart { isLoggedIn() }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), false)
 
-   private val _isProccessingLogin = MutableStateFlow(false)
-   val isProccesingLogin: StateFlow<Boolean> = _isProccessingLogin
+   private val _isProcessingLogin = MutableStateFlow(false)
+   val isProcessingLogin: StateFlow<Boolean> = _isProcessingLogin
 
    private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
    val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
@@ -67,28 +66,18 @@ class LoginViewModel(
 
    fun onLoginPress() {
       viewModelScope.launch {
-         _isProccessingLogin.value = true
+         _isProcessingLogin.value = true
          val result = authenticationUseCase.login(_username.value, _password.value)
 
          result.onError {
-            when (it) {
-               NetworkError.REQUEST_TIMEOUT -> enqueuePopup("ERROR", "Request Timeout...")
-               NetworkError.UNAUTHORIZED -> enqueuePopup("ERROR", "Unauthorized...")
-               NetworkError.CONFLICT -> enqueuePopup("ERROR", "Conflict...")
-               NetworkError.TOO_MANY_REQUESTS -> enqueuePopup("ERROR", "Too many requests...")
-               NetworkError.NO_INTERNET -> enqueuePopup("ERROR", "No Internet")
-               NetworkError.PAYLOAD_TOO_LARGE -> enqueuePopup("ERROR", "Paylaod too big...")
-               NetworkError.SERVER_ERROR -> enqueuePopup("ERROR", "Server Error")
-               NetworkError.SERIALIZATION -> enqueuePopup("ERROR", "Serialization...")
-               NetworkError.UNKNOWN -> enqueuePopup("ERROR", "Uknowon...")
-            }
+            enqueuePopup("ERROR", it.toString())
          }
 
          result.onSuccess {
             enqueuePopup("INFO", "Successfully logged in!")
          }
 
-         _isProccessingLogin.value = false
+         _isProcessingLogin.value = false
       }
    }
 }
