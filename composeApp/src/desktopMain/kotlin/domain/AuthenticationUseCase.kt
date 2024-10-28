@@ -3,24 +3,20 @@ package domain
 import data.AuthenticationRepository
 import util.AppResult
 import util.Result
-import util.onError
 
 class AuthenticationUseCase(
    private val authenticationRepository: AuthenticationRepository
 ) {
    suspend fun login(username: String, password: String): AppResult<Unit> {
-      val result = authenticationRepository.getTokenFromApi(username, password)
+      val token =
+         when (val apiResult = authenticationRepository.getTokenFromApi(username, password)) {
+            is Result.Error -> return Result.Error(apiResult.error)
+            is Result.Success -> apiResult.data
+         }
 
-      result.onError {
-         return Result.Error(it)
+      return when (val dbResult = authenticationRepository.insertTokenToDatabase(token)) {
+         is Result.Error -> Result.Error(dbResult.error)
+         is Result.Success -> Result.Success(Unit)
       }
-
-      val dbResult = authenticationRepository.insertTokenToDatabase()
-
-      dbResult.onError {
-         return Result.Error(it)
-      }
-
-      return Result.Success(Unit)
    }
 }

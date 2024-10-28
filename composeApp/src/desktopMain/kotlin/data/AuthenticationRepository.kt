@@ -19,11 +19,11 @@ class AuthenticationRepository(
       return api.login(adminForLoginModel)
    }
 
-   suspend fun insertTokenToDatabase(): AppResult<Unit> {
+   suspend fun insertTokenToDatabase(token: String): AppResult<Unit> {
       return withContext(Dispatchers.IO) {
          // might throw, ngl idk
          try {
-            tokenDao.upsert(tokenEntity = TokenEntity("example_token"))
+            tokenDao.upsert(tokenEntity = TokenEntity(token))
 
             Result.Success(Unit)
          } catch (e: Exception) {
