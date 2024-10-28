@@ -45,9 +45,7 @@ kotlin {
          implementation(libs.ktor.client.content.negotiation)
          implementation(libs.ktor.serialization.kotlinx.json)
          implementation(libs.ktor.client.okhttp)
-         implementation(libs.room.gradle.plugin)
          implementation(libs.room.runtime)
-         implementation(libs.sqlite)
          implementation(libs.sqlite.bundled)
       }
       desktopMain.dependencies {
