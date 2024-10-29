@@ -39,9 +39,9 @@ private inline fun <T> safeApiCall(
    apiCall: () -> HttpResponse,
    successHandler: (HttpResponse) -> T
 ): AppResult<T> {
-   val response = apiCall()
-
    return try {
+      val response = apiCall()
+
       when (response.status.value) {
          in 200..299 -> {
             val result = successHandler(response)
