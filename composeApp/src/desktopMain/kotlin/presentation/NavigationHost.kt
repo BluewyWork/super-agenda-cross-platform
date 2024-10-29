@@ -9,6 +9,7 @@ import presentation.composables.NavigationBarWrapper
 import presentation.screens.login.LoginScreen
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersScreen
+import presentation.screens.users.UsersViewModel
 
 @Composable
 fun NavigationHost() {
@@ -24,8 +25,10 @@ fun NavigationHost() {
       }
 
       composable(Destinations.Users.route) {
+         val usersViewModel = koinViewModel<UsersViewModel>()
+
          NavigationBarWrapper(navController) {
-            UsersScreen()
+            UsersScreen(usersViewModel)
          }
       }
    }

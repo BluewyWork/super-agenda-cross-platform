@@ -16,7 +16,7 @@ class AuthenticationRepository(
 ) {
    suspend fun getTokenFromApi(username: String, password: String): AppResult<String> {
       val adminForLoginModel = AdminForLoginModel(username, password)
-      return api.login(adminForLoginModel)
+      return api.fetchToken(adminForLoginModel)
    }
 
    suspend fun insertTokenToDatabase(token: String): AppResult<Unit> {

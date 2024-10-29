@@ -68,12 +68,17 @@ class LoginViewModel(
          _isProcessingLogin.value = true
 
          when (val result = authenticationUseCase.login(_username.value, _password.value)) {
-            is Result.Error -> enqueuePopup("ERROR", result.error.toString())
-            is Result.Success -> enqueuePopup("INFO", "Successfully logged in!")
+            is Result.Error -> {
+               enqueuePopup("ERROR", result.error.toString())
+            }
+
+            is Result.Success -> {
+               enqueuePopup("INFO", "Successfully logged in!")
+               _isLoggedIn.value = true
+            }
          }
 
          _isProcessingLogin.value = false
-         _isLoggedIn.value = true
       }
    }
 }

@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import presentation.Destinations
 import presentation.composables.PopupDialog
@@ -18,8 +19,8 @@ import presentation.composables.PopupDialog
 // header, footer setup...
 @Composable
 fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
-   val popupsQueue by loginViewModel.popupsQueue.collectAsState()
-   val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
+   val popupsQueue by loginViewModel.popupsQueue.collectAsStateWithLifecycle()
+   val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
 
    if (popupsQueue.isNotEmpty()) {
       val item = popupsQueue.first()
@@ -40,8 +41,8 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
 // this is the body
 @Composable
 fun Login(loginViewModel: LoginViewModel, navController: NavController) {
-   val username by loginViewModel.username.collectAsState()
-   val password by loginViewModel.password.collectAsState()
+   val username by loginViewModel.username.collectAsStateWithLifecycle()
+   val password by loginViewModel.password.collectAsStateWithLifecycle()
 
    Column(
       modifier = Modifier

@@ -40,6 +40,8 @@ kotlin {
          implementation(libs.ktor.client.okhttp)
          implementation(libs.room.runtime)
          implementation(libs.sqlite.bundled)
+         implementation(libs.mongodb)
+         implementation(libs.bson.kotlinx)
       }
       desktopMain.dependencies {
          implementation(compose.desktop.currentOs)

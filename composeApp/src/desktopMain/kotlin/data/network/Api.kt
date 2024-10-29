@@ -1,10 +1,13 @@
 package data.network
 
 import data.models.AdminForLoginModel
+import data.models.UserModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -20,16 +23,28 @@ class Api(
    private val httpClient: HttpClient
 ) {
    // data type should be probably be transform in repository and not here
-   suspend fun login(body: AdminForLoginModel): AppResult<String> {
+   suspend fun fetchToken(body: AdminForLoginModel): AppResult<String> {
       return safeApiCall(
          apiCall = {
             httpClient.post(urlString = Endpoints.LOGIN) {
                contentType(ContentType.Application.Json)
                setBody(body)
             }
-         })
-      {
+         }
+      ) {
          it.body<ApiResponse<TokenInResponse>>().data.token
+      }
+   }
+
+   suspend fun fetchAllUsers(token: String): AppResult<List<UserModel>> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.get(urlString = Endpoints.GET_ALL_USERS) {
+               header("Authorization", token)
+            }
+         }
+      ) {
+         it.body<ApiResponse<List<UserModel>>>().data
       }
    }
 }
