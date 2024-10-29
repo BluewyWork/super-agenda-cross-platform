@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import core.Destinations
+import presentation.Destinations
 import presentation.composables.PopupDialog
 
 // header, footer setup...
@@ -31,9 +31,8 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
    }
 
    if (isLoggedIn && popupsQueue.isEmpty()) {
-      navController.navigate(Destinations.Example.route)
+      navController.navigate(Destinations.Users.route)
    }
-
 
    Login(loginViewModel, navController)
 }
