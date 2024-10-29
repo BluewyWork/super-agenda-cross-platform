@@ -1,4 +1,4 @@
-rootProject.name = "SuperAgendaDesktop"
+rootProject.name = "SuperAgendaCrossPlatform"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
