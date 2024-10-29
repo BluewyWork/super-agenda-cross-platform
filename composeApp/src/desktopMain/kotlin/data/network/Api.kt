@@ -7,6 +7,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.util.network.UnresolvedAddressException
@@ -18,33 +19,47 @@ import util.Result
 class Api(
    private val httpClient: HttpClient
 ) {
+   // data type should be probably be transform in repository and not here
    suspend fun login(body: AdminForLoginModel): AppResult<String> {
-      val response = try {
-         httpClient.post(
-            urlString = Endpoints.LOGIN
-         ) {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-         }
-      } catch (e: UnresolvedAddressException) {
-         return Result.Error(AppError.NetworkError.NO_INTERNET)
-      } catch (e: SerializationException) {
-         return Result.Error(AppError.NetworkError.SERIALIZATION)
+      return safeApiCall(
+         apiCall = {
+            httpClient.post(urlString = Endpoints.LOGIN) {
+               contentType(ContentType.Application.Json)
+               setBody(body)
+            }
+         })
+      {
+         it.body<ApiResponse<TokenInResponse>>().data.token
       }
+   }
+}
 
-      println(response)
+// helper function
+private inline fun <T> safeApiCall(
+   apiCall: () -> HttpResponse,
+   successHandler: (HttpResponse) -> T
+): AppResult<T> {
+   val response = apiCall()
 
-      return when (response.status.value) {
+   return try {
+      when (response.status.value) {
          in 200..299 -> {
-            val payload = response.body<ApiResponse<TokenInResponse>>()
-            Result.Success(payload.data.token)
+            val result = successHandler(response)
+            Result.Success(result)
          }
 
+         // TODO: this can be expanded
          401 -> Result.Error(AppError.NetworkError.UNAUTHORIZED)
          409 -> Result.Error(AppError.NetworkError.CONFLICT)
          408 -> Result.Error(AppError.NetworkError.REQUEST_TIMEOUT)
          413 -> Result.Error(AppError.NetworkError.PAYLOAD_TOO_LARGE)
          in 500..599 -> Result.Error(AppError.NetworkError.SERVER_ERROR)
+         else -> Result.Error(AppError.NetworkError.UNKNOWN)
+      }
+   } catch (e: Exception) {
+      when (e) {
+         is UnresolvedAddressException -> Result.Error(AppError.NetworkError.NO_INTERNET)
+         is SerializationException -> Result.Error(AppError.NetworkError.SERIALIZATION)
          else -> Result.Error(AppError.NetworkError.UNKNOWN)
       }
    }
