@@ -19,4 +19,11 @@ class AuthenticationUseCase(
          is Result.Success -> Result.Success(Unit)
       }
    }
+
+   suspend fun checkIfLoggedIn(): Boolean {
+      return when (val dbResult = authenticationRepository.getTokenFromDatabase()) {
+         is Result.Error -> false
+         is Result.Success -> true
+      }
+   }
 }

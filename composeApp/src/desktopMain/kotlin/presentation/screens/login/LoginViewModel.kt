@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import presentation.Constants
-import util.onError
-import util.onSuccess
+import util.Result
 
 class LoginViewModel(
    private val authenticationUseCase: AuthenticationUseCase
@@ -36,7 +35,7 @@ class LoginViewModel(
 
    private fun isLoggedIn() {
       viewModelScope.launch {
-
+         _isLoggedIn.value = authenticationUseCase.checkIfLoggedIn()
       }
    }
 
@@ -67,17 +66,14 @@ class LoginViewModel(
    fun onLoginPress() {
       viewModelScope.launch {
          _isProcessingLogin.value = true
-         val result = authenticationUseCase.login(_username.value, _password.value)
 
-         result.onError {
-            enqueuePopup("ERROR", it.toString())
-         }
-
-         result.onSuccess {
-            enqueuePopup("INFO", "Successfully logged in!")
+         when (val result = authenticationUseCase.login(_username.value, _password.value)) {
+            is Result.Error -> enqueuePopup("ERROR", result.error.toString())
+            is Result.Success -> enqueuePopup("INFO", "Successfully logged in!")
          }
 
          _isProcessingLogin.value = false
+         _isLoggedIn.value = true
       }
    }
 }

@@ -31,4 +31,14 @@ class AuthenticationRepository(
          }
       }
    }
+
+   suspend fun getTokenFromDatabase(): AppResult<String> {
+      return withContext(Dispatchers.IO) {
+         try {
+            Result.Success(tokenDao.get().token)
+         } catch (e: Exception) {
+            Result.Error(AppError.DatabaseError.UNKNOWN)
+         }
+      }
+   }
 }
