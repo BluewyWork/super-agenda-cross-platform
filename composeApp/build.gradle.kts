@@ -15,16 +15,9 @@ kotlin {
       withJava()
    }
 
-   linuxX64() {
-      binaries {
-         executable()
-      }
-   }
-
    sourceSets {
       val desktopMain by getting
       val commonMain by getting
-      val linuxX64Main by getting
 
       commonMain.dependencies {
          implementation(compose.runtime)
@@ -51,7 +44,7 @@ kotlin {
       desktopMain.dependencies {
          implementation(compose.desktop.currentOs)
          implementation(libs.kotlinx.coroutines.swing)
-//         implementation(libs.androidx.material3.desktop)
+         implementation(libs.androidx.material3.desktop)
       }
    }
 }

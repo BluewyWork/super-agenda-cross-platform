@@ -18,7 +18,7 @@ fun NavigationHost() {
       navController = navController,
       startDestination = Destinations.Login.route
    ) {
-       composable(Destinations.Login.route) {
+      composable(Destinations.Login.route) {
          val loginViewModel = koinViewModel<LoginViewModel>()
          LoginScreen(loginViewModel, navController)
       }
