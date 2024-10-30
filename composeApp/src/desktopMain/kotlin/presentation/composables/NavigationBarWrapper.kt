@@ -91,5 +91,11 @@ fun SideBar(navController: NavController) {
          onClick = { navController.navigate(Destinations.Users.route) },
          icon = { Text("Users") }
       )
+
+      NavigationRailItem(
+         selected = currentRoute == Destinations.Admins.route,
+         onClick = { navController.navigate(Destinations.Admins.route) },
+         icon = { Text("Admins") }
+      )
    }
 }

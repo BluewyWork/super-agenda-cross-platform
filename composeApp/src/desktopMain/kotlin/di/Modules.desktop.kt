@@ -2,11 +2,13 @@ package di
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import data.AdminRepository
 import data.AuthenticationRepository
 import data.UserRepository
 import data.database.AppDatabase
 import data.database.TokenDao
 import data.network.Api
+import domain.AdminUseCase
 import domain.AuthenticationUseCase
 import domain.UserUseCase
 import io.ktor.client.HttpClient
@@ -20,6 +22,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import presentation.screens.admins.AdminsViewModel
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersViewModel
 import java.io.File
@@ -50,14 +53,17 @@ actual val platformModule: Module = module {
    // repositories
    singleOf(::AuthenticationRepository)
    singleOf(::UserRepository)
+   singleOf(::AdminRepository)
 
    // usecases
    singleOf(::AuthenticationUseCase)
    singleOf(::UserUseCase)
+   singleOf(::AdminUseCase)
 
    // viewmodels
    viewModelOf(::LoginViewModel)
    viewModelOf(::UsersViewModel)
+   viewModelOf(::AdminsViewModel)
 
    // database (room)
    single {

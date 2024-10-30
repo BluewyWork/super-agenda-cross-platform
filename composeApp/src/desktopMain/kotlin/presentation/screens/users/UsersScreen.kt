@@ -3,7 +3,6 @@ package presentation.screens.users
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Button
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import presentation.composables.PopupDialog
+import presentation.composables.TableCell
 
 @Composable
 fun UsersScreen(usersViewModel: UsersViewModel) {
@@ -116,19 +116,5 @@ fun Users(usersViewModel: UsersViewModel) {
             Divider()
          }
       }
-   }
-}
-
-@Composable
-fun RowScope.TableCell(
-   weight: Float,
-   content: @Composable () -> Unit
-) {
-   Box(
-      modifier = Modifier
-         .weight(weight)
-         .fillMaxSize()
-   ) {
-      content()
    }
 }

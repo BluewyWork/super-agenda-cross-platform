@@ -1,11 +1,13 @@
 package data.network
 
 import data.models.AdminForLoginModel
+import data.models.AdminModel
 import data.models.UserModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -26,7 +28,7 @@ class Api(
    suspend fun fetchToken(body: AdminForLoginModel): AppResult<String> {
       return safeApiCall(
          apiCall = {
-            httpClient.post(urlString = Endpoints.LOGIN) {
+            httpClient.post(urlString = Endpoints.GET_TOKEN) {
                contentType(ContentType.Application.Json)
                setBody(body)
             }
@@ -46,6 +48,52 @@ class Api(
       ) {
          it.body<ApiResponse<List<UserModel>>>().data
       }
+   }
+
+   suspend fun createAdmin(token: String, admin: AdminModel): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.post(urlString = Endpoints.CREATE_ADMIN) {
+               contentType(ContentType.Application.Json)
+               setBody(admin)
+               header("Authorization", token)
+            }
+         }
+      ) {}
+   }
+
+   suspend fun readAllAdmins(token: String): AppResult<List<AdminModel>> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.get(urlString = Endpoints.GET_ALL_ADMINS) {
+               header("Authorization", token)
+            }
+         }
+      ) {
+         it.body<ApiResponse<List<AdminModel>>>().data
+      }
+   }
+
+   suspend fun updateAdmin(token: String, admin: AdminModel): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.post(urlString = Endpoints.UPDATE_ADMIN) {
+               header("Authorization", token)
+               contentType(ContentType.Application.Json)
+               setBody(admin)
+            }
+         }
+      ) {}
+   }
+
+   suspend fun deleteAdmin(token: String, adminId: String): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.delete(urlString = "${Endpoints.DELETE_ADMIN}/$adminId") {
+               header("Authorization", token)
+            }
+         }
+      ) {}
    }
 }
 

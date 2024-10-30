@@ -5,4 +5,5 @@ sealed class Destinations(
 ) {
    object Login : Destinations("login")
    object Users : Destinations("users")
+   object Admins : Destinations("admins")
 }

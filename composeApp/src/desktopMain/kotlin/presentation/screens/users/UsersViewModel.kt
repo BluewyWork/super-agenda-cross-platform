@@ -14,7 +14,7 @@ import presentation.Constants
 import util.Result
 
 class UsersViewModel(
-   userUseCase: UserUseCase
+   private val userUseCase: UserUseCase
 ) : ViewModel() {
    private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
    val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
