@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -169,10 +168,7 @@ fun Admins(
          val column2Weight = .3f
          val column3Weight = .2f
 
-         Row(
-            modifier = Modifier
-               .height(50.dp)
-         ) {
+         Row {
             TableCell(column1Weight) {
                Text(" ")
             }
@@ -202,34 +198,6 @@ fun Admins(
             modifier = Modifier
                .fillMaxSize()
          ) {
-            item {
-//               Row(
-//                  modifier = Modifier.background(Color.Magenta)
-//               ) {
-//                  TableCell(column1Weight) {
-//                     Text(" ")
-//                  }
-//
-//                  TableCell(column2Weight) {
-//                     Text("ID")
-//                  }
-//
-//                  TableCell(column2Weight) {
-//                     Text("USERNAME")
-//                  }
-//
-//                  TableCell(column2Weight) {
-//                     Text("HASHED PASSWORD")
-//                  }
-//
-//                  TableCell(column3Weight) {
-//                     Text(" ")
-//                  }
-//               }
-//
-//               Divider()
-            }
-
             adminsProcessed.forEachIndexed { index, admin ->
                item {
                   Row(
