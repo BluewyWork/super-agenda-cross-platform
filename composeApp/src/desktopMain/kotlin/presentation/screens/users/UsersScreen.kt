@@ -1,21 +1,44 @@
 package presentation.screens.users
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import presentation.Constants
 import presentation.composables.PopupDialog
 import presentation.composables.TableCell
+import presentation.ui.theme.oneDarkProBackground
+import presentation.ui.theme.oneDarkProSurface
 
 @Composable
 fun UsersScreen(usersViewModel: UsersViewModel) {
@@ -33,21 +56,76 @@ fun UsersScreen(usersViewModel: UsersViewModel) {
    Users(usersViewModel)
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Users(usersViewModel: UsersViewModel) {
-   val users by usersViewModel.users.collectAsStateWithLifecycle()
+   val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+   val scope = rememberCoroutineScope()
 
-   val column1Weight = .1f
-   val column2Weight = .3f
-   val column3Weight = .2f
+   ModalBottomSheetLayout(
+      sheetState = sheetState,
 
-   LazyColumn(
-      modifier = Modifier.fillMaxSize()
+      sheetContent = {
+         BottomSheetContent(usersViewModel)
+      },
+
+      sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
    ) {
-      item {
+      Column(
+         modifier = Modifier
+            .fillMaxSize()
+      ) {
          Row(
-            modifier = Modifier.background(Color.Magenta)
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(Constants.SPACE.dp),
+
+            verticalAlignment = Alignment.CenterVertically
          ) {
+            Row(
+               verticalAlignment = Alignment.CenterVertically,
+               horizontalArrangement = Arrangement.Center
+            ) {
+               val usernameToSearch by usersViewModel.usernameToSearch.collectAsStateWithLifecycle()
+
+               OutlinedTextField(
+                  label = { Text("Search Username") },
+                  value = usernameToSearch,
+                  onValueChange = { usersViewModel.onUsernameToSearchChange(it) }
+               )
+
+               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+               Button(
+                  onClick = {
+                     usersViewModel.onSearchPress()
+                  }
+               ) {
+                  Icon(Icons.Default.Search, "Search")
+               }
+
+               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+               Button(
+                  onClick = {
+                     usersViewModel.onRefreshPress()
+                  }
+               ) {
+                  Icon(Icons.Default.Refresh, "Refresh")
+               }
+            }
+         }
+
+         Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+         val users by usersViewModel.users.collectAsStateWithLifecycle()
+         val usersProcessed by usersViewModel.usersFiltered.collectAsStateWithLifecycle()
+
+         val column1Weight = .1f
+         val column2Weight = .3f
+         val column3Weight = .2f
+
+         Row {
             TableCell(column1Weight) {
                Text(" ")
             }
@@ -70,51 +148,73 @@ fun Users(usersViewModel: UsersViewModel) {
          }
 
          Divider()
-      }
 
-      users.forEachIndexed() { index, user ->
-         item {
-            Row(
-               modifier = Modifier.background(
-                  if (index % 2 == 0) {
-                     Color.LightGray
-                  } else {
-                     Color.White
-                  }
-               )
-            ) {
-               TableCell(column1Weight) {
-                  Text("${index + 1}")
-               }
-
-               TableCell(column2Weight) {
-                  Text(user.id.toString())
-               }
-
-               TableCell(column2Weight) {
-                  Text(user.username)
-               }
-
-               TableCell(column2Weight) {
-                  Text(user.hashedPassword)
-               }
-
-               TableCell(column3Weight) {
-                  Box(
-                     modifier = Modifier.fillMaxSize(),
-                     contentAlignment = Alignment.Center,
+         LazyColumn(
+            modifier = Modifier.fillMaxSize()
+         ) {
+            usersProcessed.forEachIndexed { index, user ->
+               item {
+                  Row(
+                     modifier = Modifier.background(
+                        if (index % 2 == 0) {
+                           oneDarkProSurface
+                        } else {
+                           oneDarkProBackground
+                        }
+                     )
                   ) {
-                     Button(
-                        onClick = {},
-                     ) {
-                        Text("Edit")
+                     TableCell(column1Weight) {
+                        Text("${index + 1}")
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(user.id.toString())
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(user.username)
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(user.hashedPassword)
+                     }
+
+                     TableCell(column3Weight) {
+                        Box(
+                           modifier = Modifier.fillMaxSize(),
+                           contentAlignment = Alignment.Center,
+                        ) {
+                           Button(
+                              onClick = {
+                                 scope.launch {
+                                    sheetState.show()
+                                 }
+                              },
+                           ) {
+                              Icon(Icons.Default.Edit, "Edit")
+                           }
+                        }
                      }
                   }
                }
             }
-
-            Divider()
          }
+      }
+   }
+}
+
+@Composable
+fun BottomSheetContent(usersViewModel: UsersViewModel) {
+   Column(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalAlignment = Alignment.CenterHorizontally
+   ) {
+      Button(
+         onClick = {
+            usersViewModel.onDeletePress()
+         }
+      ) {
+         Icon(Icons.Default.Delete, "Delete")
       }
    }
 }

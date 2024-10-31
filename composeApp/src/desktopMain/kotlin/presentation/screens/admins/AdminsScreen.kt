@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
@@ -131,14 +130,7 @@ fun Admins(
                ) {
                   Icon(Icons.Default.Search, "Search")
                }
-            }
 
-            Row(
-               modifier = Modifier
-                  .fillMaxWidth(),
-               horizontalArrangement = Arrangement.End,
-               verticalAlignment = Alignment.CenterVertically
-            ) {
                Spacer(modifier = Modifier.size(Constants.SPACE.dp))
 
                Button(
@@ -148,9 +140,14 @@ fun Admins(
                ) {
                   Icon(Icons.Default.Refresh, "Refresh")
                }
+            }
 
-               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
-
+            Row(
+               modifier = Modifier
+                  .fillMaxWidth(),
+               horizontalArrangement = Arrangement.End,
+               verticalAlignment = Alignment.CenterVertically
+            ) {
                Button(
                   onClick = {
                      adminsViewModel.onBottomSheetContentStateChange(BottomSheetContentState.CREATE)
@@ -246,8 +243,6 @@ fun Admins(
                         }
                      }
                   }
-
-                  Divider()
                }
             }
          }
