@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,24 +19,30 @@ import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import domain.models.Admin
 import kotlinx.coroutines.launch
 import presentation.Constants
 import presentation.composables.PopupDialog
 import presentation.composables.TableCell
+import presentation.ui.theme.oneDarkProBackground
+import presentation.ui.theme.oneDarkProSurface
 
 @Composable
 fun AdminsScreen(adminsViewModel: AdminsViewModel) {
@@ -113,7 +120,7 @@ fun Admins(
                val adminUsernameToSearch by adminsViewModel.adminUsernameToSearch.collectAsStateWithLifecycle()
 
                OutlinedTextField(
-                  label = { Text("Search") },
+                  label = { Text("Search Username") },
                   value = adminUsernameToSearch,
                   onValueChange = { adminsViewModel.onAdminUsernameToSearchChange(it) },
                )
@@ -123,7 +130,7 @@ fun Admins(
                Button(
                   onClick = { adminsViewModel.onSearchPress() },
                ) {
-                  Text("Search")
+                  Icon(Icons.Default.Search, "Search")
                }
             }
 
@@ -140,7 +147,7 @@ fun Admins(
                      adminsViewModel.onRefreshPress()
                   }
                ) {
-                  Text("Refresh")
+                  Icon(Icons.Default.Refresh, "Refresh")
                }
 
                Spacer(modifier = Modifier.size(Constants.SPACE.dp))
@@ -151,51 +158,76 @@ fun Admins(
                      scope.launch { sheetState.show() }
                   },
                ) {
-                  Text("New Admin")
+                  Icon(Icons.Default.Add, "New Admin")
                }
             }
          }
 
          Spacer(modifier = Modifier.size(Constants.SPACE.dp))
 
-         // since it is a cold flow it needs something to be observing it to action
-         val admins by adminsViewModel.admins.collectAsStateWithLifecycle()
-         val adminsProcessed by adminsViewModel.adminsFiltered.collectAsStateWithLifecycle()
-
          val column1Weight = .1f
          val column2Weight = .3f
          val column3Weight = .2f
+
+         Row(
+            modifier = Modifier
+               .height(50.dp)
+         ) {
+            TableCell(column1Weight) {
+               Text(" ")
+            }
+
+            TableCell(column2Weight) {
+               Text("ID")
+            }
+
+            TableCell(column2Weight) {
+               Text("USERNAME")
+            }
+
+            TableCell(column2Weight) {
+               Text("HASHED PASSWORD")
+            }
+
+            TableCell(column3Weight) {
+               Text(" ")
+            }
+         }
+
+         // since it is a cold flow it needs something to be observing it to action
+         val admins by adminsViewModel.admins.collectAsStateWithLifecycle()
+         val adminsProcessed by adminsViewModel.adminsFiltered.collectAsStateWithLifecycle()
 
          LazyColumn(
             modifier = Modifier
                .fillMaxSize()
          ) {
             item {
-               Row(
-                  modifier = Modifier.background(Color.Magenta)
-               ) {
-                  TableCell(column1Weight) {
-                     Text(" ")
-                  }
-
-                  TableCell(column2Weight) {
-                     Text("ID")
-                  }
-
-                  TableCell(column2Weight) {
-                     Text("USERNAME")
-                  }
-
-                  TableCell(column2Weight) {
-                     Text("HASHED PASSWORD")
-                  }
-
-                  TableCell(column3Weight) {
-                     Text(" ")
-                  }
-               }
-
-               Divider()
+//               Row(
+//                  modifier = Modifier.background(Color.Magenta)
+//               ) {
+//                  TableCell(column1Weight) {
+//                     Text(" ")
+//                  }
+//
+//                  TableCell(column2Weight) {
+//                     Text("ID")
+//                  }
+//
+//                  TableCell(column2Weight) {
+//                     Text("USERNAME")
+//                  }
+//
+//                  TableCell(column2Weight) {
+//                     Text("HASHED PASSWORD")
+//                  }
+//
+//                  TableCell(column3Weight) {
+//                     Text(" ")
+//                  }
+//               }
+//
+//               Divider()
             }
 
             adminsProcessed.forEachIndexed { index, admin ->
@@ -203,9 +235,9 @@ fun Admins(
                   Row(
                      modifier = Modifier.background(
                         if (index % 2 == 0) {
-                           Color.LightGray
+                           oneDarkProSurface
                         } else {
-                           Color.White
+                           oneDarkProBackground
                         }
                      )
                   ) {
@@ -241,7 +273,7 @@ fun Admins(
                                  scope.launch { sheetState.show() }
                               },
                            ) {
-                              Text("Edit")
+                              Icon(Icons.Default.Edit, "Edit")
                            }
                         }
                      }
