@@ -34,7 +34,7 @@ class AdminUseCase(
          is Result.Success -> tokenResult.data
       }
 
-      return adminRepository.updateAdminAtApi(token, admin);
+      return adminRepository.updateAdminAtApi(token, admin)
    }
 
    suspend fun destroyAdminAtApi(adminId: String): AppResult<Unit> {

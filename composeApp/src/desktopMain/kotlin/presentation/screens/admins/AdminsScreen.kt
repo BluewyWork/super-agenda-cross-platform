@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.BottomSheetState
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
@@ -98,7 +97,11 @@ fun Admins(
          when (bottomSheetContentState) {
             BottomSheetContentState.NONE -> Text("Nothing to see here...")
             BottomSheetContentState.CREATE -> BottomSheetContentForCreate(adminsViewModel)
-            BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(adminsViewModel, scope, sheetState)
+            BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(
+               adminsViewModel,
+               scope,
+               sheetState
+            )
          }
       },
 
@@ -258,7 +261,11 @@ fun Admins(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel, scope: CoroutineScope, sheetState: ModalBottomSheetState) {
+fun BottomSheetContentForUpdate(
+   adminsViewModel: AdminsViewModel,
+   scope: CoroutineScope,
+   sheetState: ModalBottomSheetState
+) {
    Row(
       modifier = Modifier
          .padding(Constants.SPACE.dp)
@@ -312,7 +319,7 @@ fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel, scope: Corouti
             onClick = {
                adminsViewModel.onDeletePress {
                   scope.launch {
-                    sheetState.hide()
+                     sheetState.hide()
                   }
                }
             },
