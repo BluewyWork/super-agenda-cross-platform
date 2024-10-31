@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.BottomSheetState
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -36,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import presentation.Constants
 import presentation.composables.PopupDialog
@@ -95,7 +98,7 @@ fun Admins(
          when (bottomSheetContentState) {
             BottomSheetContentState.NONE -> Text("Nothing to see here...")
             BottomSheetContentState.CREATE -> BottomSheetContentForCreate(adminsViewModel)
-            BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(adminsViewModel)
+            BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(adminsViewModel, scope, sheetState)
          }
       },
 
@@ -253,8 +256,9 @@ fun Admins(
    }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel) {
+fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel, scope: CoroutineScope, sheetState: ModalBottomSheetState) {
    Row(
       modifier = Modifier
          .padding(Constants.SPACE.dp)
@@ -305,7 +309,13 @@ fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel) {
          Spacer(modifier = Modifier.width(Constants.SPACE.dp))
 
          Button(
-            onClick = { adminsViewModel.onDeletePress() },
+            onClick = {
+               adminsViewModel.onDeletePress {
+                  scope.launch {
+                    sheetState.hide()
+                  }
+               }
+            },
 
             modifier = Modifier
                .fillMaxWidth()

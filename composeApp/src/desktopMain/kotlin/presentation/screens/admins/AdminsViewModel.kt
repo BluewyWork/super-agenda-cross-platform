@@ -117,7 +117,7 @@ class AdminsViewModel(
       }
    }
 
-   fun onDeletePress() {
+   fun onDeletePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
          _loadingNonInteractable.value = true
 
@@ -137,6 +137,7 @@ class AdminsViewModel(
                _confirmPasswordToCreate.value = ""
                refreshAdmins {}
                enqueuePopup("INFO", "Successfully deleted admin!")
+               onSuccess()
             }
          }
       }
