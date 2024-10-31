@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
@@ -186,6 +187,8 @@ fun Admins(
                Text(" ")
             }
          }
+
+         Divider()
 
          // since it is a cold flow it needs something to be observing it to action
          val admins by adminsViewModel.admins.collectAsStateWithLifecycle()
