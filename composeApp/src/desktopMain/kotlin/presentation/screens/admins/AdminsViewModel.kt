@@ -27,23 +27,33 @@ class AdminsViewModel(
    val admins: StateFlow<List<Admin>> = _admins
       .onStart {
          viewModelScope.launch {
-            when (val usersResult = adminUseCase.retrieveAllAdminsFromApi()) {
-               is Result.Error -> enqueuePopup("ERROR", usersResult.error.toString())
-               is Result.Success -> _admins.value = usersResult.data
-            }
+            refreshAdmins {}
          }
       }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), emptyList())
 
-   private val _adminToEdit =
-      MutableStateFlow<Admin>(Admin(ObjectId(), "placeholder", "placeholder"))
-   val adminToEdit: StateFlow<Admin> = _adminToEdit
+   private val _adminsFiltered = MutableStateFlow<List<Admin>>(emptyList())
+   val adminsFiltered: StateFlow<List<Admin>> = _adminsFiltered
 
    private val _idToEdit = MutableStateFlow(ObjectId())
-   val idToEdit: StateFlow<ObjectId> = _idToEdit
 
    private val _usernameToEdit = MutableStateFlow("")
    val usernameToEdit: StateFlow<String> = _usernameToEdit
+
+   private val _bottomSheetContentState = MutableStateFlow(BottomSheetContentState.NONE)
+   val bottomSheetContentState: StateFlow<BottomSheetContentState> = _bottomSheetContentState
+
+   private val _usernameToCreate = MutableStateFlow("")
+   val usernameToCreate: StateFlow<String> = _usernameToCreate
+
+   private val _passwordToCreate = MutableStateFlow("")
+   val passwordToCreate: StateFlow<String> = _passwordToCreate
+
+   private val _confirmPasswordToCreate = MutableStateFlow("")
+   val confirmPasswordToCreate: StateFlow<String> = _confirmPasswordToCreate
+
+   private val _adminUsernameToSearch = MutableStateFlow("")
+   val adminUsernameToSearch: StateFlow<String> = _adminUsernameToSearch
 
    fun enqueuePopup(title: String, description: String) {
       _popupsQueue.value = _popupsQueue.value.plus(Pair(title, description))
@@ -61,9 +71,141 @@ class AdminsViewModel(
       _usernameToEdit.value = username
    }
 
+   private fun refreshAdmins(callback: (List<Admin>) -> Unit) {
+      viewModelScope.launch {
+         when (val usersResult = adminUseCase.retrieveAllAdminsFromApi()) {
+            is Result.Error -> enqueuePopup("ERROR", usersResult.error.toString())
+            is Result.Success -> {
+               _admins.value = usersResult.data
+               _adminsFiltered.value = usersResult.data
+
+               callback(usersResult.data)
+            }
+         }
+      }
+   }
+
+   fun onUpdatePress() {
+      viewModelScope.launch {
+         _loadingNonInteractable.value = true
+
+         val selectedAdmin = admins.value.find { it.id == _idToEdit.value }
+
+         if (selectedAdmin == null) {
+            _loadingNonInteractable.value = false
+            enqueuePopup("ERROR", "Admin not found...")
+            return@launch
+         }
+
+         val updatedAdmin =
+            Admin(selectedAdmin.id, selectedAdmin.username, selectedAdmin.hashedPassword)
+
+         val updateResult = adminUseCase.modifyAdminAtApi(updatedAdmin)
+         _loadingNonInteractable.value = false
+
+         when (updateResult) {
+            is Result.Error -> enqueuePopup("ERROR", updateResult.error.toString())
+
+            is Result.Success -> {
+               _usernameToCreate.value = ""
+               _passwordToCreate.value = ""
+               _confirmPasswordToCreate.value = ""
+               refreshAdmins {}
+               enqueuePopup("INFO", "Successfully updated admin!")
+            }
+         }
+      }
+   }
+
    fun onDeletePress() {
       viewModelScope.launch {
+         _loadingNonInteractable.value = true
 
+         // TODO: CHECK THIS (IDK if it is correct the format)
+         println("CHECK THIS")
+         println(_idToEdit.value.toHexString())
+
+         val destroyResult = adminUseCase.destroyAdminAtApi(_idToEdit.value.toHexString())
+         _loadingNonInteractable.value = false
+
+         when (destroyResult) {
+            is Result.Error -> enqueuePopup("ERROR", destroyResult.error.toString())
+
+            is Result.Success -> {
+               _usernameToCreate.value = ""
+               _passwordToCreate.value = ""
+               _confirmPasswordToCreate.value = ""
+               refreshAdmins {}
+               enqueuePopup("INFO", "Successfully deleted admin!")
+            }
+         }
+      }
+   }
+
+   fun onBottomSheetContentStateChange(bottomSheetContentState: BottomSheetContentState) {
+      _bottomSheetContentState.value = bottomSheetContentState
+   }
+
+   fun onUsernameToCreateChange(username: String) {
+      _usernameToCreate.value = username
+   }
+
+   fun onPasswordToCreateChange(password: String) {
+      _passwordToCreate.value = password
+   }
+
+   fun onConfirmPasswordToCreateChange(confirmPassword: String) {
+      _confirmPasswordToCreate.value = confirmPassword
+   }
+
+   fun onAdminUsernameToSearchChange(username: String) {
+      _adminUsernameToSearch.value = username
+   }
+
+   fun onSearchPress() {
+      _adminUsernameToSearch.value.ifBlank {
+         _adminsFiltered.value = _admins.value
+         return
+      }
+
+      _adminsFiltered.value =
+         _admins.value.filter {
+            it.username.contains(_adminUsernameToSearch.value, true)
+         }
+   }
+
+   fun onCreatePress() {
+      viewModelScope.launch {
+         _loadingNonInteractable.value = true
+
+         val newAdmin = Admin(
+            ObjectId(),
+            usernameToCreate.value,
+            passwordToCreate.value
+         )
+
+         val deleteResult = adminUseCase.spawnAdminAtApi(newAdmin)
+         _loadingNonInteractable.value = false
+
+         when (deleteResult) {
+            is Result.Error -> enqueuePopup("ERROR", deleteResult.error.toString())
+
+            is Result.Success -> {
+               _usernameToCreate.value = ""
+               _passwordToCreate.value = ""
+               _confirmPasswordToCreate.value = ""
+               refreshAdmins {}
+               enqueuePopup("INFO", "Successfully created admin!")
+            }
+         }
+      }
+   }
+
+   fun onRefreshPress() {
+      refreshAdmins {
+         if (_adminUsernameToSearch.value.isNotBlank()) {
+            onSearchPress()
+         }
       }
    }
 }

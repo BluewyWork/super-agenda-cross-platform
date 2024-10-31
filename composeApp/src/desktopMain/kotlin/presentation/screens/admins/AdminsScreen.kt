@@ -1,19 +1,23 @@
 package presentation.screens.admins
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
@@ -27,11 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import domain.models.Admin
 import kotlinx.coroutines.launch
+import presentation.Constants
 import presentation.composables.PopupDialog
 import presentation.composables.TableCell
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AdminsScreen(adminsViewModel: AdminsViewModel) {
    val popupsQueue by adminsViewModel.popupsQueue.collectAsStateWithLifecycle()
@@ -79,125 +84,293 @@ fun Admins(
       sheetState = sheetState,
 
       sheetContent = {
-         Row(
-            modifier = Modifier.padding(10.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-         ) {
-            Column {
-               val usernameToEdit by adminsViewModel.usernameToEdit.collectAsStateWithLifecycle()
+         val bottomSheetContentState by adminsViewModel.bottomSheetContentState.collectAsStateWithLifecycle()
 
-               OutlinedTextField(
-                  label = { Text("Username") },
-                  value = usernameToEdit,
-
-                  onValueChange = {
-                     adminsViewModel.onUsernameToEditChange(it)
-                  }
-               )
-            }
-
-            Column {
-               Button(
-                  onClick = { TODO() }
-               ) {
-                  Text("Update")
-               }
-
-               Button(
-                  onClick = { TODO() }
-               ) {
-                  Text("Delete")
-               }
-            }
+         when (bottomSheetContentState) {
+            BottomSheetContentState.NONE -> Text("Nothing to see here...")
+            BottomSheetContentState.CREATE -> BottomSheetContentForCreate(adminsViewModel)
+            BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(adminsViewModel)
          }
       },
 
-      sheetShape = MaterialTheme.shapes.large,
+      sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
    ) {
-      val admins by adminsViewModel.admins.collectAsStateWithLifecycle()
-
-      val column1Weight = .1f
-      val column2Weight = .3f
-      val column3Weight = .2f
-
-      LazyColumn(
-         modifier = Modifier.fillMaxSize()
+      Column(
+         modifier = Modifier
+            .fillMaxSize()
       ) {
-         item {
+         Row(
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(Constants.SPACE.dp),
+
+            verticalAlignment = Alignment.CenterVertically
+         ) {
             Row(
-               modifier = Modifier.background(Color.Magenta)
+               verticalAlignment = Alignment.CenterVertically,
+               horizontalArrangement = Arrangement.Center
             ) {
-               TableCell(column1Weight) {
-                  Text(" ")
-               }
+               val adminUsernameToSearch by adminsViewModel.adminUsernameToSearch.collectAsStateWithLifecycle()
 
-               TableCell(column2Weight) {
-                  Text("ID")
-               }
+               OutlinedTextField(
+                  label = { Text("Search") },
+                  value = adminUsernameToSearch,
+                  onValueChange = { adminsViewModel.onAdminUsernameToSearchChange(it) },
+               )
 
-               TableCell(column2Weight) {
-                  Text("USERNAME")
-               }
+               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
 
-               TableCell(column2Weight) {
-                  Text("HASHED PASSWORD")
-               }
-
-               TableCell(column3Weight) {
-                  Text(" ")
+               Button(
+                  onClick = { adminsViewModel.onSearchPress() },
+               ) {
+                  Text("Search")
                }
             }
 
-            Divider()
+            Row(
+               modifier = Modifier
+                  .fillMaxWidth(),
+               horizontalArrangement = Arrangement.End,
+               verticalAlignment = Alignment.CenterVertically
+            ) {
+               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+               Button(
+                  onClick = {
+                     adminsViewModel.onRefreshPress()
+                  }
+               ) {
+                  Text("Refresh")
+               }
+
+               Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+               Button(
+                  onClick = {
+                     adminsViewModel.onBottomSheetContentStateChange(BottomSheetContentState.CREATE)
+                     scope.launch { sheetState.show() }
+                  },
+               ) {
+                  Text("New Admin")
+               }
+            }
          }
 
-         admins.forEachIndexed { index, admin ->
+         Spacer(modifier = Modifier.size(Constants.SPACE.dp))
+
+         // since it is a cold flow it needs something to be observing it to action
+         val admins by adminsViewModel.admins.collectAsStateWithLifecycle()
+         val adminsProcessed by adminsViewModel.adminsFiltered.collectAsStateWithLifecycle()
+
+         val column1Weight = .1f
+         val column2Weight = .3f
+         val column3Weight = .2f
+
+         LazyColumn(
+            modifier = Modifier
+               .fillMaxSize()
+         ) {
             item {
                Row(
-                  modifier = Modifier.background(
-                     if (index % 2 == 0) {
-                        Color.LightGray
-                     } else {
-                        Color.White
-                     }
-                  )
+                  modifier = Modifier.background(Color.Magenta)
                ) {
                   TableCell(column1Weight) {
-                     Text("${index + 1}")
+                     Text(" ")
                   }
 
                   TableCell(column2Weight) {
-                     Text(admin.id.toString())
+                     Text("ID")
                   }
 
                   TableCell(column2Weight) {
-                     Text(admin.username)
+                     Text("USERNAME")
                   }
 
                   TableCell(column2Weight) {
-                     Text(admin.hashedPassword)
+                     Text("HASHED PASSWORD")
                   }
 
                   TableCell(column3Weight) {
-                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                     ) {
-                        Button(
-                           onClick = {
-                              adminsViewModel.onIdToEditChange(admin.id)
-                              adminsViewModel.onUsernameToEditChange(admin.username)
-                              scope.launch { sheetState.show() }
-                           },
-                        ) {
-                           Text("Edit")
-                        }
-                     }
+                     Text(" ")
                   }
                }
 
                Divider()
             }
+
+            adminsProcessed.forEachIndexed { index, admin ->
+               item {
+                  Row(
+                     modifier = Modifier.background(
+                        if (index % 2 == 0) {
+                           Color.LightGray
+                        } else {
+                           Color.White
+                        }
+                     )
+                  ) {
+                     TableCell(column1Weight) {
+                        Text("${index + 1}")
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(admin.id.toString())
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(admin.username)
+                     }
+
+                     TableCell(column2Weight) {
+                        Text(admin.hashedPassword)
+                     }
+
+                     TableCell(column3Weight) {
+                        Box(
+                           modifier = Modifier.fillMaxSize(),
+                           contentAlignment = Alignment.Center,
+                        ) {
+                           Button(
+                              onClick = {
+                                 adminsViewModel.onBottomSheetContentStateChange(
+                                    BottomSheetContentState.UPDATE
+                                 )
+
+                                 adminsViewModel.onIdToEditChange(admin.id)
+                                 adminsViewModel.onUsernameToEditChange(admin.username)
+                                 scope.launch { sheetState.show() }
+                              },
+                           ) {
+                              Text("Edit")
+                           }
+                        }
+                     }
+                  }
+
+                  Divider()
+               }
+            }
+         }
+      }
+   }
+}
+
+@Composable
+fun BottomSheetContentForUpdate(adminsViewModel: AdminsViewModel) {
+   Row(
+      modifier = Modifier
+         .padding(Constants.SPACE.dp)
+         .fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+   ) {
+      Column(
+         modifier = Modifier
+            .weight(.5f)
+            .fillMaxWidth()
+      ) {
+         val usernameToEdit by adminsViewModel.usernameToEdit.collectAsStateWithLifecycle()
+
+         OutlinedTextField(
+            label = { Text("Username") },
+            value = usernameToEdit,
+
+            onValueChange = {
+               adminsViewModel.onUsernameToEditChange(it)
+            },
+
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(Constants.SPACE.dp)
+         )
+      }
+
+      Spacer(modifier = Modifier.width(Constants.SPACE.dp))
+
+      Column(
+         modifier = Modifier
+            .weight(.5f)
+            .fillMaxWidth(),
+         horizontalAlignment = Alignment.CenterHorizontally
+      ) {
+         Button(
+            onClick = {
+               adminsViewModel.onUpdatePress()
+            },
+
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(start = Constants.SPACE.dp, end = Constants.SPACE.dp)
+         ) {
+            Text("Update")
+         }
+
+         Spacer(modifier = Modifier.width(Constants.SPACE.dp))
+
+         Button(
+            onClick = { adminsViewModel.onDeletePress() },
+
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(start = Constants.SPACE.dp, end = Constants.SPACE.dp)
+         ) {
+            Text("Delete")
+         }
+      }
+   }
+}
+
+@Composable
+fun BottomSheetContentForCreate(adminsViewModel: AdminsViewModel) {
+   Row(
+      modifier = Modifier
+         .padding(Constants.SPACE.dp)
+         .fillMaxWidth(),
+
+      verticalAlignment = Alignment.CenterVertically
+   ) {
+      Column(
+         modifier = Modifier
+            .weight(.5f)
+            .fillMaxWidth()
+      ) {
+         val username by adminsViewModel.usernameToCreate.collectAsStateWithLifecycle()
+         val password by adminsViewModel.passwordToCreate.collectAsStateWithLifecycle()
+         val confirmPassword by adminsViewModel.confirmPasswordToCreate.collectAsStateWithLifecycle()
+
+         OutlinedTextField(
+            label = { Text("Username") },
+            value = username,
+            onValueChange = { adminsViewModel.onUsernameToCreateChange(it) }
+         )
+
+         OutlinedTextField(
+            label = { Text("Password") },
+            value = password,
+            onValueChange = { adminsViewModel.onPasswordToCreateChange(it) }
+         )
+
+         OutlinedTextField(
+            label = { Text("Confirm Password") },
+            value = confirmPassword,
+            onValueChange = { adminsViewModel.onConfirmPasswordToCreateChange(it) }
+         )
+      }
+
+      Column(
+         modifier = Modifier
+            .weight(.5f)
+            .fillMaxWidth()
+      ) {
+         Button(
+            onClick = {
+               adminsViewModel.onCreatePress()
+            },
+
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(Constants.SPACE.dp)
+         ) {
+            Text("Create")
          }
       }
    }
