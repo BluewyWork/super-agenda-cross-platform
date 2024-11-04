@@ -20,7 +20,8 @@ class AdminsViewModel(
    private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
    val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
 
-   private val _loadingNonInteractable = MutableStateFlow<Boolean>(false)
+   // could create a function to wrap code to automatically handle start and end of this
+   private val _loadingNonInteractable = MutableStateFlow(false)
    val loadingNonInteractable: StateFlow<Boolean> = _loadingNonInteractable
 
    private val _admins = MutableStateFlow<List<Admin>>(emptyList())
@@ -54,6 +55,16 @@ class AdminsViewModel(
 
    private val _adminUsernameToSearch = MutableStateFlow("")
    val adminUsernameToSearch: StateFlow<String> = _adminUsernameToSearch
+
+   private suspend fun <T> withLoadingNonInteractable(block: suspend () -> T): T {
+      _loadingNonInteractable.value = true
+
+      return try {
+         block()
+      } finally {
+         _loadingNonInteractable.value = false
+      }
+   }
 
    fun enqueuePopup(title: String, description: String) {
       _popupsQueue.value = _popupsQueue.value.plus(Pair(title, description))
