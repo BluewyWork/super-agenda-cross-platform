@@ -1,5 +1,6 @@
 package presentation
 
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,6 +13,7 @@ import presentation.screens.login.LoginScreen
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersScreen
 import presentation.screens.users.UsersViewModel
+import presentation.ui.theme.OneDarkProTheme
 
 @Composable
 fun NavigationHost() {
@@ -23,7 +25,11 @@ fun NavigationHost() {
    ) {
       composable(Destinations.Login.route) {
          val loginViewModel = koinViewModel<LoginViewModel>()
-         LoginScreen(loginViewModel, navController)
+
+         // hmmm, custom background theme does not apply without scaffold?
+         Scaffold {
+            LoginScreen(loginViewModel, navController)
+         }
       }
 
       composable(Destinations.Users.route) {

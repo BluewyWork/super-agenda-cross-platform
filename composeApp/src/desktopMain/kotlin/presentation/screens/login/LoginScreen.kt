@@ -46,7 +46,9 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
 
    Column(
       modifier = Modifier
-         .fillMaxSize(),
+         .fillMaxSize()
+//         .background(oneDarkProBackground)
+      ,
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally
    ) {
