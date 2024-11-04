@@ -98,7 +98,7 @@ class AdminsViewModel(
          }
 
          val updatedAdmin =
-            Admin(selectedAdmin.id, selectedAdmin.username, selectedAdmin.hashedPassword)
+            Admin(selectedAdmin.id, usernameToEdit.value, selectedAdmin.hashedPassword)
 
          val updateResult = adminUseCase.modifyAdminAtApi(updatedAdmin)
          _loadingNonInteractable.value = false
