@@ -1,21 +1,24 @@
 package data.network
 
 import data.models.AdminForLoginModel
+import data.models.AdminForUpdateModel
 import data.models.AdminModel
+import data.models.UserForAdminViewModel
 import data.models.UserModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
+import domain.models.AdminForUpdate
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.serialization.SerializationException
 import util.AppError
 import util.AppResult
@@ -50,6 +53,18 @@ class Api(
       }
    }
 
+   suspend fun fetchAllUsersForAdminView(token: String): AppResult<List<UserForAdminViewModel>> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.get(urlString = Endpoints.GET_ALL_USERS) {
+               header("Authorization", token)
+            }
+         }
+      ) {
+         it.body<ApiResponse<List<UserForAdminViewModel>>>().data
+      }
+   }
+
    suspend fun createAdmin(token: String, admin: AdminModel): AppResult<Unit> {
       return safeApiCall(
          apiCall = {
@@ -74,13 +89,17 @@ class Api(
       }
    }
 
-   suspend fun updateAdmin(token: String, admin: AdminModel): AppResult<Unit> {
+   suspend fun updateAdmin(
+      token: String,
+      id: String,
+      adminForUpdate: AdminForUpdateModel
+   ): AppResult<Unit> {
       return safeApiCall(
          apiCall = {
-            httpClient.post(urlString = Endpoints.UPDATE_ADMIN) {
+            httpClient.patch(urlString = "${Endpoints.UPDATE_ADMIN}/$id") {
                header("Authorization", token)
                contentType(ContentType.Application.Json)
-               setBody(admin)
+               setBody(adminForUpdate)
             }
          }
       ) {}
@@ -120,8 +139,9 @@ private inline fun <T> safeApiCall(
          else -> Result.Error(AppError.NetworkError.UNKNOWN)
       }
    } catch (e: Exception) {
+      print("$e")
+
       when (e) {
-         is UnresolvedAddressException -> Result.Error(AppError.NetworkError.NO_INTERNET)
          is SerializationException -> Result.Error(AppError.NetworkError.SERIALIZATION)
          else -> Result.Error(AppError.NetworkError.UNKNOWN)
       }

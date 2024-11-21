@@ -3,6 +3,8 @@ package domain
 import data.AdminRepository
 import data.AuthenticationRepository
 import domain.models.Admin
+import domain.models.AdminForUpdate
+import org.bson.types.ObjectId
 import util.AppResult
 import util.Result
 
@@ -28,13 +30,13 @@ class AdminUseCase(
       return adminRepository.getAllAdminsFromApi(token)
    }
 
-   suspend fun modifyAdminAtApi(admin: Admin): AppResult<Unit> {
+   suspend fun modifyAdminAtApi(id: ObjectId, admin: AdminForUpdate): AppResult<Unit> {
       val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
          is Result.Error -> return Result.Error(tokenResult.error)
          is Result.Success -> tokenResult.data
       }
 
-      return adminRepository.updateAdminAtApi(token, admin)
+      return adminRepository.updateAdminAtApi(token, id, admin)
    }
 
    suspend fun destroyAdminAtApi(adminId: String): AppResult<Unit> {

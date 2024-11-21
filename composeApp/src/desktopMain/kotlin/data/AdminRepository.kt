@@ -4,6 +4,8 @@ import data.models.toData
 import data.models.toDomain
 import data.network.Api
 import domain.models.Admin
+import domain.models.AdminForUpdate
+import org.bson.types.ObjectId
 import util.AppResult
 import util.map
 
@@ -18,8 +20,12 @@ class AdminRepository(
       return api.readAllAdmins(token).map { it -> it.map { it.toDomain() } }
    }
 
-   suspend fun updateAdminAtApi(token: String, admin: Admin): AppResult<Unit> {
-      return api.updateAdmin(token, admin.toData())
+   suspend fun updateAdminAtApi(
+      token: String,
+      id: ObjectId,
+      admin: AdminForUpdate
+   ): AppResult<Unit> {
+      return api.updateAdmin(token, id.toHexString(), admin.toData())
    }
 
    suspend fun deleteAdminAtApi(token: String, adminId: String): AppResult<Unit> {

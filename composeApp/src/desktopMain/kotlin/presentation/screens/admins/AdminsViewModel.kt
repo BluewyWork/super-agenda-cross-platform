@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AdminUseCase
 import domain.models.Admin
+import domain.models.AdminForUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -109,9 +110,9 @@ class AdminsViewModel(
          }
 
          val updatedAdmin =
-            Admin(selectedAdmin.id, usernameToEdit.value, selectedAdmin.hashedPassword)
+            AdminForUpdate(usernameToEdit.value)
 
-         val updateResult = adminUseCase.modifyAdminAtApi(updatedAdmin)
+         val updateResult = adminUseCase.modifyAdminAtApi(selectedAdmin.id, updatedAdmin)
          _loadingNonInteractable.value = false
 
          when (updateResult) {

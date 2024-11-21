@@ -13,7 +13,6 @@ import presentation.screens.login.LoginScreen
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersScreen
 import presentation.screens.users.UsersViewModel
-import presentation.ui.theme.OneDarkProTheme
 
 @Composable
 fun NavigationHost() {

@@ -3,7 +3,7 @@ package presentation.screens.users
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.UserUseCase
-import domain.models.User
+import domain.models.UserForAdminView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,15 +19,15 @@ class UsersViewModel(
    private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
    val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
 
-   private val _users = MutableStateFlow<List<User>>(emptyList())
-   val users: StateFlow<List<User>> = _users
+   private val _users = MutableStateFlow<List<UserForAdminView>>(emptyList())
+   val users: StateFlow<List<UserForAdminView>> = _users
       .onStart {
          refreshUsers {}
       }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), emptyList())
 
-   private val _usersFiltered = MutableStateFlow<List<User>>(emptyList())
-   val usersFiltered: StateFlow<List<User>> = _usersFiltered
+   private val _usersFiltered = MutableStateFlow<List<UserForAdminView>>(emptyList())
+   val usersFiltered: StateFlow<List<UserForAdminView>> = _usersFiltered
 
    private val _usernameToSearch = MutableStateFlow("")
    val usernameToSearch: StateFlow<String> = _usernameToSearch
@@ -56,9 +56,9 @@ class UsersViewModel(
          }
    }
 
-   fun refreshUsers(callback: (List<User>) -> Unit) {
+   fun refreshUsers(callback: (List<UserForAdminView>) -> Unit) {
       viewModelScope.launch {
-         when (val usersResult = userUseCase.retrieveAllUsersFromApi()) {
+         when (val usersResult = userUseCase.retrieveAllUsersForAdminViewFromApi()) {
             is Result.Error -> enqueuePopup("ERROR", usersResult.error.toString())
             is Result.Success -> {
                _users.value = usersResult.data

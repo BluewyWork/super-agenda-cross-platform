@@ -139,7 +139,11 @@ fun Users(usersViewModel: UsersViewModel) {
             }
 
             TableCell(column2Weight) {
-               Text("HASHED PASSWORD")
+               Text("NUM_TASKS")
+            }
+
+            TableCell(column2Weight) {
+               Text("PLAN")
             }
 
             TableCell(column3Weight) {
@@ -176,7 +180,11 @@ fun Users(usersViewModel: UsersViewModel) {
                      }
 
                      TableCell(column2Weight) {
-                        Text(user.hashedPassword)
+                        Text("${user.tasksSize}")
+                     }
+
+                     TableCell(column2Weight) {
+                        Text("${user.membership}")
                      }
 
                      TableCell(column3Weight) {
