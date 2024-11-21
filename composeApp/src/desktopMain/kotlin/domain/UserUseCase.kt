@@ -4,6 +4,8 @@ import data.AuthenticationRepository
 import data.UserRepository
 import domain.models.User
 import domain.models.UserForAdminView
+import domain.models.UserForUpdate
+import org.bson.types.ObjectId
 import util.AppResult
 import util.Result
 
@@ -33,5 +35,17 @@ class UserUseCase(
          is Result.Error -> Result.Error(usersResult.error)
          is Result.Success -> Result.Success(usersResult.data)
       }
+   }
+
+   suspend fun updateUserForUpdateAtApi(
+      id: ObjectId,
+      userForUpdate: UserForUpdate
+   ): AppResult<Unit> {
+      val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
+         is Result.Error -> return Result.Error(tokenResult.error)
+         is Result.Success -> tokenResult.data
+      }
+
+      return userRepository.updateUserForUpdateAtApi(token, id.toHexString(), userForUpdate)
    }
 }

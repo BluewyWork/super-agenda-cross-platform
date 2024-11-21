@@ -4,6 +4,7 @@ import data.models.AdminForLoginModel
 import data.models.AdminForUpdateModel
 import data.models.AdminModel
 import data.models.UserForAdminViewModel
+import data.models.UserForUpdateModel
 import data.models.UserModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
@@ -63,6 +64,18 @@ class Api(
       ) {
          it.body<ApiResponse<List<UserForAdminViewModel>>>().data
       }
+   }
+
+   suspend fun updateUserForUpdate(token: String, id: String, userForUpdateModel: UserForUpdateModel): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.patch(urlString = "${Endpoints.UPDATE_USER}/$id") {
+               header("Authorization", token)
+               contentType(ContentType.Application.Json)
+               setBody(userForUpdateModel)
+            }
+         }
+      ) {}
    }
 
    suspend fun createAdmin(token: String, admin: AdminModel): AppResult<Unit> {
