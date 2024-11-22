@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 
 enum class Membership {
    FREE,
-   PREMIUM
+   PREMIUM,
 }
 
 data class UserForAdminView(

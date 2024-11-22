@@ -48,4 +48,15 @@ class UserUseCase(
 
       return userRepository.updateUserForUpdateAtApi(token, id.toHexString(), userForUpdate)
    }
+
+   suspend fun deleteUserAtApi(
+      id: ObjectId
+   ): AppResult<Unit> {
+      val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
+         is Result.Error -> return Result.Error(tokenResult.error)
+         is Result.Success -> tokenResult.data
+      }
+
+      return userRepository.deleteUserAtApi(token, id)
+   }
 }

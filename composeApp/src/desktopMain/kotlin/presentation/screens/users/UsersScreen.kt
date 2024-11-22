@@ -21,7 +21,6 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -33,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import domain.models.Membership
 import kotlinx.coroutines.launch
 import presentation.Constants
+import presentation.composables.DropdownMenuGeneric
 import presentation.composables.PopupDialog
 import presentation.composables.TableCell
 import presentation.ui.theme.oneDarkProBackground
@@ -194,6 +195,9 @@ fun Users(usersViewModel: UsersViewModel) {
                         ) {
                            Button(
                               onClick = {
+                                 usersViewModel.onSelectedUserChange(user.id)
+                                 usersViewModel.onUsernameToUpdateChange(user.username)
+
                                  scope.launch {
                                     sheetState.show()
                                  }
@@ -213,16 +217,54 @@ fun Users(usersViewModel: UsersViewModel) {
 
 @Composable
 fun BottomSheetContent(usersViewModel: UsersViewModel) {
-   Column(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalAlignment = Alignment.CenterHorizontally
+   Row(
+      modifier = Modifier.fillMaxWidth().padding(Constants.SPACE.dp),
+      verticalAlignment = Alignment.CenterVertically
    ) {
-      Button(
-         onClick = {
-            usersViewModel.onDeletePress()
-         }
+      Column(
+         modifier = Modifier.fillMaxWidth().weight(.5f),
+         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-         Icon(Icons.Default.Delete, "Delete")
+         val usernameToUpdate: String by usersViewModel.usernameToUpdate.collectAsStateWithLifecycle()
+         val membershipToUpdate: Membership by usersViewModel.membershipToUpdate.collectAsStateWithLifecycle()
+
+         OutlinedTextField(
+            label = { Text("Username") },
+            value = usernameToUpdate,
+            onValueChange = { usersViewModel.onUsernameToUpdateChange(it) },
+         )
+
+         DropdownMenuGeneric(
+            Membership.entries.toTypedArray(),
+            Membership.FREE,
+            onValueChange = { usersViewModel.onMembershipToUpdateChange(it) })
+      }
+
+      Column(
+         modifier = Modifier.fillMaxWidth().weight(.5f),
+         horizontalAlignment = Alignment.CenterHorizontally
+      ) {
+         Button(
+            onClick = {
+               usersViewModel.onUpdatePress()
+            },
+
+            modifier = Modifier.fillMaxWidth()
+               .padding(start = Constants.SPACE.dp, end = Constants.SPACE.dp)
+         ) {
+            Text("Update")
+         }
+
+         Button(
+            onClick = {
+               usersViewModel.onDeletePress()
+            },
+
+            modifier = Modifier.fillMaxWidth()
+               .padding(start = Constants.SPACE.dp, end = Constants.SPACE.dp)
+         ) {
+            Text("Delete")
+         }
       }
    }
 }

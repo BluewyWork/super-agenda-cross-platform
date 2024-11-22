@@ -127,6 +127,16 @@ class Api(
          }
       ) {}
    }
+
+   suspend fun deleteUser(token: String, id: String): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.delete(urlString = "${Endpoints.DELETE_USER}/$id") {
+               header("Authorization", token)
+            }
+         }
+      ) {}
+   }
 }
 
 // helper function

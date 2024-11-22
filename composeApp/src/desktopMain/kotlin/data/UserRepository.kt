@@ -7,6 +7,7 @@ import data.network.Api
 import domain.models.User
 import domain.models.UserForAdminView
 import domain.models.UserForUpdate
+import org.bson.types.ObjectId
 import util.AppResult
 import util.map
 
@@ -23,5 +24,9 @@ class UserRepository(
 
    suspend fun updateUserForUpdateAtApi(token: String, id: String, userForUpdate: UserForUpdate): AppResult<Unit> {
       return api.updateUserForUpdate(token, id, userForUpdate.toData())
+   }
+
+   suspend fun deleteUserAtApi(token: String, id: ObjectId): AppResult<Unit> {
+      return api.deleteUser(token, id.toHexString())
    }
 }

@@ -7,6 +7,7 @@ object Endpoints {
 
    const val GET_ALL_USERS = "$BASE_URL/users"
    const val UPDATE_USER = "$BASE_URL/users"
+   const val DELETE_USER = "$BASE_URL/users"
 
    const val CREATE_ADMIN = "$BASE_URL/admins"
    const val GET_ALL_ADMINS = "$BASE_URL/admins"
