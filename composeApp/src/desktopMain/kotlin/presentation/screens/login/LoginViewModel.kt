@@ -30,8 +30,8 @@ class LoginViewModel(
    private val _isProcessingLogin = MutableStateFlow(false)
    val isProcessingLogin: StateFlow<Boolean> = _isProcessingLogin
 
-   private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
-   val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
+   private val _popupsQueue = MutableStateFlow<List<Triple<String, String, String>>>(emptyList())
+   val popupsQueue: StateFlow<List<Triple<String, String, String>>> = _popupsQueue
 
    private fun isLoggedIn() {
       viewModelScope.launch {
@@ -39,8 +39,8 @@ class LoginViewModel(
       }
    }
 
-   fun enqueuePopup(title: String, description: String) {
-      _popupsQueue.value = _popupsQueue.value.plus(Pair(title, description))
+   fun enqueuePopup(title: String, description: String, error: String =  "") {
+      _popupsQueue.value = _popupsQueue.value.plus(Triple(title, description, error))
    }
 
    fun dismissPopup() {
@@ -69,7 +69,7 @@ class LoginViewModel(
 
          when (val result = authenticationUseCase.login(_username.value, _password.value)) {
             is Result.Error -> {
-               enqueuePopup("ERROR", result.error.toString())
+               enqueuePopup("ERROR", "Failed to login...", result.error.toString())
             }
 
             is Result.Success -> {

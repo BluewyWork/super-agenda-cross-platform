@@ -24,7 +24,7 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
 
    if (popupsQueue.isNotEmpty()) {
       val item = popupsQueue.first()
-      PopupDialog(item.first, item.second) {
+      PopupDialog(item.first, item.second, item.third) {
          println("dismiss")
          println(popupsQueue.toString())
          loginViewModel.dismissPopup()
@@ -52,16 +52,14 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally
    ) {
-      Text("Username")
-
       OutlinedTextField(
+         label = { Text("Username ") },
          value = username,
          onValueChange = { loginViewModel.onUsernameChange(it) }
       )
 
-      Text("Password")
-
       OutlinedTextField(
+         label = { Text("Password") },
          value = password,
          onValueChange = { loginViewModel.onPasswordChange(it) }
       )

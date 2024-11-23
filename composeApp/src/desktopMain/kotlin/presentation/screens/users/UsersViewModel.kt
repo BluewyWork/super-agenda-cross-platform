@@ -19,8 +19,8 @@ import util.Result
 class UsersViewModel(
    private val userUseCase: UserUseCase
 ) : ViewModel() {
-   private val _popupsQueue = MutableStateFlow<List<Pair<String, String>>>(emptyList())
-   val popupsQueue: StateFlow<List<Pair<String, String>>> = _popupsQueue
+   private val _popupsQueue = MutableStateFlow<List<Triple<String, String, String>>>(emptyList())
+   val popupsQueue: StateFlow<List<Triple<String, String, String>>> = _popupsQueue
 
    private val _users = MutableStateFlow<List<UserForAdminView>>(emptyList())
    val users: StateFlow<List<UserForAdminView>> = _users
@@ -43,8 +43,8 @@ class UsersViewModel(
 
    private val _selectedUserId = MutableStateFlow(ObjectId())
 
-   fun enqueuePopup(title: String, description: String) {
-      _popupsQueue.value = _popupsQueue.value.plus(Pair(title, description))
+   fun enqueuePopup(title: String, description: String, error: String = "") {
+      _popupsQueue.value = _popupsQueue.value.plus(Triple(title, description, error))
    }
 
    fun dismissPopup() {
@@ -82,7 +82,7 @@ class UsersViewModel(
    fun refreshUsers(callback: (List<UserForAdminView>) -> Unit) {
       viewModelScope.launch {
          when (val usersResult = userUseCase.retrieveAllUsersForAdminViewFromApi()) {
-            is Result.Error -> enqueuePopup("ERROR", usersResult.error.toString())
+            is Result.Error -> enqueuePopup("ERROR", "Failed to refresh users...", usersResult.error.toString())
             is Result.Success -> {
                _users.value = usersResult.data
                _usersFiltered.value = usersResult.data

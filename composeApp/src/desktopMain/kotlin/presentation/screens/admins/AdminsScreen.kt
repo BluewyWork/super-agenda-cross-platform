@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +53,7 @@ fun AdminsScreen(adminsViewModel: AdminsViewModel) {
    if (popupsQueue.isNotEmpty()) {
       val item = popupsQueue.first()
 
-      PopupDialog(item.first, item.second) {
+      PopupDialog(item.first, item.second, item.third) {
          adminsViewModel.dismissPopup()
       }
    }
@@ -355,19 +356,21 @@ fun BottomSheetContentForCreate(adminsViewModel: AdminsViewModel) {
          OutlinedTextField(
             label = { Text("Username") },
             value = username,
-            onValueChange = { adminsViewModel.onUsernameToCreateChange(it) }
+            onValueChange = { adminsViewModel.onUsernameToCreateChange(it) },
          )
 
          OutlinedTextField(
             label = { Text("Password") },
             value = password,
-            onValueChange = { adminsViewModel.onPasswordToCreateChange(it) }
+            onValueChange = { adminsViewModel.onPasswordToCreateChange(it) },
+            visualTransformation = PasswordVisualTransformation()
          )
 
          OutlinedTextField(
             label = { Text("Confirm Password") },
             value = confirmPassword,
-            onValueChange = { adminsViewModel.onConfirmPasswordToCreateChange(it) }
+            onValueChange = { adminsViewModel.onConfirmPasswordToCreateChange(it) },
+            visualTransformation = PasswordVisualTransformation()
          )
       }
 

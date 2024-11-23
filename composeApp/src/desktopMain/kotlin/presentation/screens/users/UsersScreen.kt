@@ -47,7 +47,7 @@ fun UsersScreen(usersViewModel: UsersViewModel) {
 
    if (popupsQueue.isNotEmpty()) {
       val item = popupsQueue.first()
-      PopupDialog(item.first, item.second) {
+      PopupDialog(item.first, item.second, item.third) {
          println("dismiss")
          println(popupsQueue.toString())
          usersViewModel.dismissPopup()
