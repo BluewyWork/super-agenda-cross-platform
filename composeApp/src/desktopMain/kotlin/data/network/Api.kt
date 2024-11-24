@@ -8,7 +8,6 @@ import data.models.UserForUpdateModel
 import data.models.UserModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
-import domain.models.AdminForUpdate
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -38,7 +37,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<TokenInResponse>>().data.token
+         it.body<ApiResponse<TokenInResponse>>().success.token
       }
    }
 
@@ -50,7 +49,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<UserModel>>>().data
+         it.body<ApiResponse<List<UserModel>>>().success
       }
    }
 
@@ -62,7 +61,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<UserForAdminViewModel>>>().data
+         it.body<ApiResponse<List<UserForAdminViewModel>>>().success
       }
    }
 
@@ -98,7 +97,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<AdminModel>>>().data
+         it.body<ApiResponse<List<AdminModel>>>().success
       }
    }
 
