@@ -145,6 +145,7 @@ private inline fun <T> safeApiCall(
 ): AppResult<T> {
    return try {
       val response = apiCall()
+      print("${response}")
 
       when (response.status.value) {
          in 200..299 -> {
@@ -161,7 +162,7 @@ private inline fun <T> safeApiCall(
          else -> Result.Error(AppError.NetworkError.UNKNOWN)
       }
    } catch (e: Exception) {
-      print("$e")
+      print("ERROR: $e")
 
       when (e) {
          is SerializationException -> Result.Error(AppError.NetworkError.SERIALIZATION)
