@@ -161,6 +161,7 @@ class UsersViewModel(
                enqueuePopup("INFO", "Successfully created user!")
                resetUserCreateState()
                refreshUsers {}
+               _stateToShow.value = StateToShow.NONE
             }
          }
       }
@@ -189,6 +190,7 @@ class UsersViewModel(
             is Result.Success -> {
                enqueuePopup("INFO", "Successfully updated!")
                refreshUsers {}
+               _stateToShow.value = StateToShow.NONE
             }
          }
       }
@@ -206,6 +208,7 @@ class UsersViewModel(
             is Result.Success -> {
                enqueuePopup("INFO", "Successfully deleted user!")
                refreshUsers {}
+               _stateToShow.value = StateToShow.NONE
             }
          }
       }
