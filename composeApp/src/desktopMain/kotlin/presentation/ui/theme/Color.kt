@@ -26,3 +26,6 @@ val oneDarkProOnBackground = Color(0xFF5c6370)
 val oneDarkProOnSurface = Color(0xFFabb2bf)
 val oneDarkProOnError = Color(0xFFFFFFFF)
 
+val oneDarkCustomYellow = Color(0xffe5c07b)
+val oneDarkCustomRed = Color(0xffe06c75)
+val oneDarkCustomGreen = Color(0xff98c379)

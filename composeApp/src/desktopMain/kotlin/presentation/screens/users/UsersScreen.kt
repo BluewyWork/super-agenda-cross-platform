@@ -43,6 +43,9 @@ import presentation.Constants
 import presentation.composables.DropdownMenuGeneric
 import presentation.composables.PopupDialog
 import presentation.composables.TableCell
+import presentation.ui.theme.oneDarkCustomGreen
+import presentation.ui.theme.oneDarkCustomRed
+import presentation.ui.theme.oneDarkCustomYellow
 import presentation.ui.theme.oneDarkProBackground
 import presentation.ui.theme.oneDarkProSurface
 
@@ -220,17 +223,17 @@ fun Users(usersViewModel: UsersViewModel) {
                         Column {
                            Text(
                               "Not Started: ${user.tasksStatistics.numNotStarted}",
-                              color = Color.Red
+                              color = oneDarkCustomRed
                            )
 
                            Text(
                               "Ongoing: ${user.tasksStatistics.numOngoing}",
-                              color = Color.Yellow
+                              color = oneDarkCustomYellow
                            )
 
                            Text(
                               "Completed: ${user.tasksStatistics.numCompleted}",
-                              color = Color.Green
+                              color = oneDarkCustomGreen
                            )
                         }
                      }
