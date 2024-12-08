@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -21,6 +22,7 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -30,6 +32,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import domain.models.Membership
@@ -60,6 +65,7 @@ fun UsersScreen(usersViewModel: UsersViewModel) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Users(usersViewModel: UsersViewModel) {
+   val stateToShow by usersViewModel.stateToShow.collectAsStateWithLifecycle()
    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
    val scope = rememberCoroutineScope()
 
@@ -67,7 +73,21 @@ fun Users(usersViewModel: UsersViewModel) {
       sheetState = sheetState,
 
       sheetContent = {
-         BottomSheetContent(usersViewModel)
+         Box(
+            modifier = Modifier.padding(Constants.SPACE.dp)
+         ) {
+            when (stateToShow) {
+               StateToShow.CREATE -> {
+                  BottomSheetUserCreate(usersViewModel)
+               }
+
+               StateToShow.UPDATE -> {
+                  BottomSheetUserUpdate(usersViewModel)
+               }
+
+               StateToShow.NONE -> scope.launch { sheetState.hide() }
+            }
+         }
       },
 
       sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -115,6 +135,22 @@ fun Users(usersViewModel: UsersViewModel) {
                   Icon(Icons.Default.Refresh, "Refresh")
                }
             }
+
+            Row(
+               modifier = Modifier
+                  .fillMaxWidth(),
+               horizontalArrangement = Arrangement.End,
+               verticalAlignment = Alignment.CenterVertically
+            ) {
+               Button(
+                  onClick = {
+                     usersViewModel.onStateToShowChanged(StateToShow.CREATE)
+                     scope.launch { sheetState.show() }
+                  },
+               ) {
+                  Icon(Icons.Default.Add, "New Admin")
+               }
+            }
          }
 
          Spacer(modifier = Modifier.size(Constants.SPACE.dp))
@@ -141,6 +177,10 @@ fun Users(usersViewModel: UsersViewModel) {
 
             TableCell(column2Weight) {
                Text("NUM_TASKS")
+            }
+
+            TableCell(column2Weight) {
+               Text("ABOUT_TASKS")
             }
 
             TableCell(column2Weight) {
@@ -181,7 +221,26 @@ fun Users(usersViewModel: UsersViewModel) {
                      }
 
                      TableCell(column2Weight) {
-                        Text("${user.tasksSize}")
+                        Text("${user.tasksStatistics.numNotStarted + user.tasksStatistics.numOngoing + user.tasksStatistics.numCompleted}")
+                     }
+
+                     TableCell(column2Weight) {
+                        Column {
+                           Text(
+                              "Not Started: ${user.tasksStatistics.numNotStarted}",
+                              color = Color.Red
+                           )
+
+                           Text(
+                              "Ongoing: ${user.tasksStatistics.numOngoing}",
+                              color = Color.Yellow
+                           )
+
+                           Text(
+                              "Completed: ${user.tasksStatistics.numCompleted}",
+                              color = Color.Green
+                           )
+                        }
                      }
 
                      TableCell(column2Weight) {
@@ -197,6 +256,7 @@ fun Users(usersViewModel: UsersViewModel) {
                               onClick = {
                                  usersViewModel.onSelectedUserChange(user.id)
                                  usersViewModel.onUsernameToUpdateChange(user.username)
+                                 usersViewModel.onStateToShowChanged(StateToShow.UPDATE)
 
                                  scope.launch {
                                     sheetState.show()
@@ -216,7 +276,7 @@ fun Users(usersViewModel: UsersViewModel) {
 }
 
 @Composable
-fun BottomSheetContent(usersViewModel: UsersViewModel) {
+fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
    Row(
       modifier = Modifier.fillMaxWidth().padding(Constants.SPACE.dp),
       verticalAlignment = Alignment.CenterVertically
@@ -264,6 +324,58 @@ fun BottomSheetContent(usersViewModel: UsersViewModel) {
                .padding(start = Constants.SPACE.dp, end = Constants.SPACE.dp)
          ) {
             Text("Delete")
+         }
+      }
+   }
+}
+
+@Composable
+fun BottomSheetUserCreate(usersViewModel: UsersViewModel) {
+   val userCreateState by usersViewModel.userCreateState.collectAsStateWithLifecycle()
+
+   Row(
+      modifier = Modifier.fillMaxWidth()
+   ) {
+      Column(
+         modifier = Modifier.weight(.5f).fillMaxWidth()
+      ) {
+         OutlinedTextField(
+            label = { Text("Username") },
+            value = userCreateState.username,
+            onValueChange = { usersViewModel.onUsernameForCreateChanged(it) }
+         )
+
+         OutlinedTextField(
+            label = { Text("Password") },
+            value = userCreateState.password,
+            onValueChange = { usersViewModel.onPasswordForCreateChanged(it) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = userCreateState.password != userCreateState.passwordConfirm
+         )
+
+         OutlinedTextField(
+            label = { Text("Confirm Password") },
+            value = userCreateState.passwordConfirm,
+            onValueChange = { usersViewModel.onPasswordConfirmForCreateChanged(it) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = userCreateState.password != userCreateState.passwordConfirm
+         )
+
+         if (userCreateState.password != userCreateState.passwordConfirm) {
+            Text("Passwords does not match...", color = Color.Red)
+         }
+      }
+
+      Column(
+         modifier = Modifier.weight(.5f).fillMaxWidth()
+      ) {
+         Button(
+            onClick = { usersViewModel.onCreatePressed() },
+            modifier = Modifier.fillMaxWidth()
+         ) {
+            Text("Create")
          }
       }
    }

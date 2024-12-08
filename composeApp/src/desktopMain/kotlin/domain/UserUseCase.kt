@@ -59,4 +59,13 @@ class UserUseCase(
 
       return userRepository.deleteUserAtApi(token, id)
    }
+
+   suspend fun createUserAtApi(user: User): AppResult<Unit> {
+      val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
+         is Result.Error -> return Result.Error(tokenResult.error)
+         is Result.Success -> tokenResult.data
+      }
+
+      return userRepository.createUserAtApi(token, user)
+   }
 }

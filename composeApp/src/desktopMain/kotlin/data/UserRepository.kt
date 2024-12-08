@@ -7,6 +7,7 @@ import data.network.Api
 import domain.models.User
 import domain.models.UserForAdminView
 import domain.models.UserForUpdate
+import kotlinx.serialization.json.Json
 import org.bson.types.ObjectId
 import util.AppResult
 import util.map
@@ -28,5 +29,9 @@ class UserRepository(
 
    suspend fun deleteUserAtApi(token: String, id: ObjectId): AppResult<Unit> {
       return api.deleteUser(token, id.toHexString())
+   }
+
+   suspend fun createUserAtApi(token: String, user: User): AppResult<Unit> {
+      return api.createUser(token, user.toData())
    }
 }

@@ -21,3 +21,9 @@ fun UserModel.toDomain() = User(
    username = username,
    hashedPassword = hashedPassword
 )
+
+fun User.toData() = UserModel (
+   id = id,
+   username = username,
+   hashedPassword = hashedPassword
+)

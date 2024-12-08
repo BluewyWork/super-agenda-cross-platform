@@ -186,10 +186,6 @@ fun Admins(
                Text("USERNAME")
             }
 
-            TableCell(column2Weight) {
-               Text("HASHED PASSWORD")
-            }
-
             TableCell(column3Weight) {
                Text(" ")
             }
@@ -226,10 +222,6 @@ fun Admins(
 
                      TableCell(column2Weight) {
                         Text(admin.username)
-                     }
-
-                     TableCell(column2Weight) {
-                        Text(admin.hashedPassword)
                      }
 
                      TableCell(column3Weight) {

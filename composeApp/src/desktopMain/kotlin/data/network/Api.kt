@@ -37,7 +37,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<TokenInResponse>>().success.token
+         it.body<ApiResponse<TokenInResponse>>().result.token
       }
    }
 
@@ -49,7 +49,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<UserModel>>>().success
+         it.body<ApiResponse<List<UserModel>>>().result
       }
    }
 
@@ -61,7 +61,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<UserForAdminViewModel>>>().success
+         it.body<ApiResponse<List<UserForAdminViewModel>>>().result
       }
    }
 
@@ -97,7 +97,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<AdminModel>>>().success
+         it.body<ApiResponse<List<AdminModel>>>().result
       }
    }
 
@@ -132,6 +132,18 @@ class Api(
          apiCall = {
             httpClient.delete(urlString = "${Endpoints.DELETE_USER}/$id") {
                header("Authorization", token)
+            }
+         }
+      ) {}
+   }
+
+   suspend fun createUser(token: String, userModel: UserModel): AppResult<Unit> {
+      return safeApiCall(
+         apiCall = {
+            httpClient.post(urlString = "placeholder") {
+               header("Authorization", token)
+               contentType(ContentType.Application.Json)
+               setBody(userModel)
             }
          }
       ) {}

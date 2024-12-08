@@ -10,6 +10,8 @@ enum class Membership {
 data class UserForAdminView(
    val id: ObjectId,
    val username: String,
-   val tasksSize: Int,
+   val tasksStatistics: TasksStatistics,
    val membership: Membership
 )
+
+data class TasksStatistics (val numNotStarted: Int, val numOngoing: Int, val numCompleted: Int)

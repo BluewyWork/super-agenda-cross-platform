@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.UserUseCase
 import domain.models.Membership
+import domain.models.User
 import domain.models.UserForAdminView
 import domain.models.UserForUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.bson.types.ObjectId
 import presentation.Constants
@@ -41,7 +43,15 @@ class UsersViewModel(
    private val _membershipToUpdate = MutableStateFlow(Membership.FREE)
    val membershipToUpdate: StateFlow<Membership> = _membershipToUpdate
 
+   private val _userCreateState = MutableStateFlow(UserCreateState())
+   val userCreateState: StateFlow<UserCreateState> = _userCreateState
+
+   private val _stateToShow = MutableStateFlow(StateToShow.NONE)
+   val stateToShow: StateFlow<StateToShow> = _stateToShow
+
    private val _selectedUserId = MutableStateFlow(ObjectId())
+
+   // Utilities
 
    fun enqueuePopup(title: String, description: String, error: String = "") {
       _popupsQueue.value = _popupsQueue.value.plus(Triple(title, description, error))
@@ -49,6 +59,11 @@ class UsersViewModel(
 
    fun dismissPopup() {
       _popupsQueue.value = _popupsQueue.value.drop(1)
+   }
+
+   // Main
+   fun onStateToShowChanged(stateToShow: StateToShow) {
+      _stateToShow.value = stateToShow
    }
 
    fun onUsernameToSearchChange(username: String) {
@@ -79,10 +94,33 @@ class UsersViewModel(
       _usernameToUpdate.value = username
    }
 
+   fun onUsernameForCreateChanged(username: String) {
+      _userCreateState.update {
+         it.copy(username = username)
+      }
+   }
+
+   fun onPasswordForCreateChanged(password: String) {
+      _userCreateState.update {
+         it.copy(password = password)
+      }
+   }
+
+   fun onPasswordConfirmForCreateChanged(passwordConfirm: String) {
+      _userCreateState.update {
+         it.copy(passwordConfirm = passwordConfirm)
+      }
+   }
+
    fun refreshUsers(callback: (List<UserForAdminView>) -> Unit) {
       viewModelScope.launch {
          when (val usersResult = userUseCase.retrieveAllUsersForAdminViewFromApi()) {
-            is Result.Error -> enqueuePopup("ERROR", "Failed to refresh users...", usersResult.error.toString())
+            is Result.Error -> enqueuePopup(
+               "ERROR",
+               "Failed to refresh users...",
+               usersResult.error.toString()
+            )
+
             is Result.Success -> {
                _users.value = usersResult.data
                _usersFiltered.value = usersResult.data
@@ -97,6 +135,51 @@ class UsersViewModel(
          if (_usernameToSearch.value.isNotEmpty()) {
             onSearchPress()
          }
+      }
+   }
+
+   fun onCreatePressed() {
+      viewModelScope.launch {
+         val username = userCreateState.value.username
+         val password = userCreateState.value.password
+         val passwordConfirm = userCreateState.value.passwordConfirm
+
+         if (username.isBlank()) {
+            enqueuePopup("ERROR", "Username can not be blank...")
+            return@launch
+         }
+
+         if (password.isBlank()) {
+            enqueuePopup("ERROR", "Password can not be blank...")
+            return@launch
+         }
+
+         if (password != passwordConfirm) {
+            enqueuePopup("ERROR", "Passwords does not match...")
+            return@launch
+         }
+
+         val resultCreateUserAtApi =
+            userUseCase.createUserAtApi(User(ObjectId(), username, password))
+
+         when (resultCreateUserAtApi) {
+            is Result.Error -> enqueuePopup(
+               "ERROR",
+               "Failed to create user...",
+               resultCreateUserAtApi.error.toString()
+            )
+
+            is Result.Success -> {
+               enqueuePopup("INFO", "Successfully created user!")
+               resetUserCreateState()
+            }
+         }
+      }
+   }
+
+   fun resetUserCreateState() {
+      _userCreateState.update {
+         it.copy(username = "", password = "", passwordConfirm = "")
       }
    }
 
@@ -135,9 +218,26 @@ class UsersViewModel(
          val id = _selectedUserId.value
 
          when (val resultDeleteUserAtApi = userUseCase.deleteUserAtApi(id)) {
-            is Result.Error -> enqueuePopup("ERROR", "Failed to delete user...")
+            is Result.Error -> enqueuePopup(
+               "ERROR",
+               "Failed to delete user...",
+               resultDeleteUserAtApi.error.toString()
+            )
+
             is Result.Success -> enqueuePopup("INFO", "Successfully deleted user!")
          }
       }
    }
 }
+
+enum class StateToShow {
+   CREATE,
+   UPDATE,
+   NONE
+}
+
+data class UserCreateState(
+   val username: String = "",
+   val password: String = "",
+   val passwordConfirm: String = ""
+)
