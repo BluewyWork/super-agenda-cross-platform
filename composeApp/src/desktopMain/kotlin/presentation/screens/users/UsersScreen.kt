@@ -277,19 +277,18 @@ fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
          modifier = Modifier.fillMaxWidth().weight(.5f),
          horizontalAlignment = Alignment.CenterHorizontally
       ) {
-         val usernameToUpdate: String by usersViewModel.usernameToUpdate.collectAsStateWithLifecycle()
-         val membershipToUpdate: Membership by usersViewModel.membershipToUpdate.collectAsStateWithLifecycle()
+         val userUpdateState by usersViewModel.userUpdateState.collectAsStateWithLifecycle()
 
          OutlinedTextField(
             label = { Text("Username") },
-            value = usernameToUpdate,
-            onValueChange = { usersViewModel.onUsernameToUpdateChange(it) },
+            value = userUpdateState.username,
+            onValueChange = { usersViewModel.onUsernameToUpdateChanged(it) },
          )
 
          DropdownMenuGeneric(
             Membership.entries.toTypedArray(),
-            Membership.FREE,
-            onValueChange = { usersViewModel.onMembershipToUpdateChange(it) })
+            userUpdateState.membership,
+            onValueChange = { usersViewModel.onMembershipToUpdateChanged(it) })
       }
 
       Column(
