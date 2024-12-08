@@ -168,10 +168,6 @@ fun Users(usersViewModel: UsersViewModel) {
             }
 
             TableCell(column2Weight) {
-               Text("ID")
-            }
-
-            TableCell(column2Weight) {
                Text("USERNAME")
             }
 
@@ -210,10 +206,6 @@ fun Users(usersViewModel: UsersViewModel) {
                   ) {
                      TableCell(column1Weight) {
                         Text("${index + 1}")
-                     }
-
-                     TableCell(column2Weight) {
-                        Text(user.id.toString())
                      }
 
                      TableCell(column2Weight) {
@@ -278,7 +270,7 @@ fun Users(usersViewModel: UsersViewModel) {
 @Composable
 fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
    Row(
-      modifier = Modifier.fillMaxWidth().padding(Constants.SPACE.dp),
+      modifier = Modifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically
    ) {
       Column(

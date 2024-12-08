@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.UserUseCase
 import domain.models.Membership
-import domain.models.User
+import domain.models.UserForCreate
 import domain.models.UserForAdminView
 import domain.models.UserForUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -159,14 +159,14 @@ class UsersViewModel(
             return@launch
          }
 
-         val resultCreateUserAtApi =
-            userUseCase.createUserAtApi(User(ObjectId(), username, password))
+         val resultCreateUserForCreateAtApi =
+            userUseCase.createUserAtApi(UserForCreate(ObjectId(), username, password))
 
-         when (resultCreateUserAtApi) {
+         when (resultCreateUserForCreateAtApi) {
             is Result.Error -> enqueuePopup(
                "ERROR",
                "Failed to create user...",
-               resultCreateUserAtApi.error.toString()
+               resultCreateUserForCreateAtApi.error.toString()
             )
 
             is Result.Success -> {

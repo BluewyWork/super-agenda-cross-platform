@@ -1,29 +1,28 @@
 package data.models
 
-import domain.models.User
+import domain.models.UserForCreate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bson.types.ObjectId
 import util.ObjectIdSerializer
 
 @Serializable
-data class UserModel(
+data class UserForCreateModel(
    @SerialName(value = "_id")
    @Serializable(with = ObjectIdSerializer::class)
    val id: ObjectId,
    val username: String,
-   @SerialName(value = "hashed_password")
-   val hashedPassword: String
+   val password: String
 )
 
-fun UserModel.toDomain() = User(
+fun UserForCreateModel.toDomain() = UserForCreate(
    id = id,
    username = username,
-   hashedPassword = hashedPassword
+   password = password
 )
 
-fun User.toData() = UserModel (
+fun UserForCreate.toData() = UserForCreateModel (
    id = id,
    username = username,
-   hashedPassword = hashedPassword
+   password = password
 )

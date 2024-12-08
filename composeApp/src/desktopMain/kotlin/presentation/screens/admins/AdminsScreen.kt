@@ -179,10 +179,6 @@ fun Admins(
             }
 
             TableCell(column2Weight) {
-               Text("ID")
-            }
-
-            TableCell(column2Weight) {
                Text("USERNAME")
             }
 
@@ -214,10 +210,6 @@ fun Admins(
                   ) {
                      TableCell(column1Weight) {
                         Text("${index + 1}")
-                     }
-
-                     TableCell(column2Weight) {
-                        Text(admin.id.toString())
                      }
 
                      TableCell(column2Weight) {

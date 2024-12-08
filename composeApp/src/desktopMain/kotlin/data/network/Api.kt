@@ -5,7 +5,7 @@ import data.models.AdminForUpdateModel
 import data.models.AdminModel
 import data.models.UserForAdminViewModel
 import data.models.UserForUpdateModel
-import data.models.UserModel
+import data.models.UserForCreateModel
 import data.network.models.ApiResponse
 import data.network.models.TokenInResponse
 import io.ktor.client.HttpClient
@@ -41,7 +41,7 @@ class Api(
       }
    }
 
-   suspend fun fetchAllUsers(token: String): AppResult<List<UserModel>> {
+   suspend fun fetchAllUsers(token: String): AppResult<List<UserForCreateModel>> {
       return safeApiCall(
          apiCall = {
             httpClient.get(urlString = Endpoints.GET_ALL_USERS) {
@@ -49,7 +49,7 @@ class Api(
             }
          }
       ) {
-         it.body<ApiResponse<List<UserModel>>>().result
+         it.body<ApiResponse<List<UserForCreateModel>>>().result
       }
    }
 
@@ -65,7 +65,11 @@ class Api(
       }
    }
 
-   suspend fun updateUserForUpdate(token: String, id: String, userForUpdateModel: UserForUpdateModel): AppResult<Unit> {
+   suspend fun updateUserForUpdate(
+      token: String,
+      id: String,
+      userForUpdateModel: UserForUpdateModel
+   ): AppResult<Unit> {
       return safeApiCall(
          apiCall = {
             httpClient.patch(urlString = "${Endpoints.UPDATE_USER}/$id") {
@@ -137,13 +141,13 @@ class Api(
       ) {}
    }
 
-   suspend fun createUser(token: String, userModel: UserModel): AppResult<Unit> {
+   suspend fun createUser(token: String, userForCreateModel: UserForCreateModel): AppResult<Unit> {
       return safeApiCall(
          apiCall = {
-            httpClient.post(urlString = "placeholder") {
+            httpClient.post(urlString = Endpoints.CREATE_USER) {
                header("Authorization", token)
                contentType(ContentType.Application.Json)
-               setBody(userModel)
+               setBody(userForCreateModel)
             }
          }
       ) {}

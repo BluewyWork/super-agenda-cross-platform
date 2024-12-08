@@ -2,7 +2,7 @@ package domain
 
 import data.AuthenticationRepository
 import data.UserRepository
-import domain.models.User
+import domain.models.UserForCreate
 import domain.models.UserForAdminView
 import domain.models.UserForUpdate
 import org.bson.types.ObjectId
@@ -13,7 +13,7 @@ class UserUseCase(
    private val authenticationRepository: AuthenticationRepository,
    private val userRepository: UserRepository
 ) {
-   suspend fun retrieveAllUsersFromApi(): AppResult<List<User>> {
+   suspend fun retrieveAllUsersFromApi(): AppResult<List<UserForCreate>> {
       val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
          is Result.Error -> return Result.Error(tokenResult.error)
          is Result.Success -> tokenResult.data
@@ -60,12 +60,12 @@ class UserUseCase(
       return userRepository.deleteUserAtApi(token, id)
    }
 
-   suspend fun createUserAtApi(user: User): AppResult<Unit> {
+   suspend fun createUserAtApi(userForCreate: UserForCreate): AppResult<Unit> {
       val token = when (val tokenResult = authenticationRepository.getTokenFromDatabase()) {
          is Result.Error -> return Result.Error(tokenResult.error)
          is Result.Success -> tokenResult.data
       }
 
-      return userRepository.createUserAtApi(token, user)
+      return userRepository.createUserAtApi(token, userForCreate)
    }
 }
