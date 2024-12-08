@@ -44,8 +44,6 @@ class UsersViewModel(
    private val _stateToShow = MutableStateFlow(StateToShow.NONE)
    val stateToShow: StateFlow<StateToShow> = _stateToShow
 
-   private val _selectedUserId = MutableStateFlow(ObjectId())
-
    // Utilities
 
    fun enqueuePopup(title: String, description: String, error: String = "") {
@@ -65,8 +63,19 @@ class UsersViewModel(
       _usernameToSearch.value = username
    }
 
-   fun onSelectedUserChange(userId: ObjectId) {
-      _selectedUserId.value = userId
+   fun onUserForUpdateSelected(userId: ObjectId) {
+      val user = _users.value.find { it.id == userId }
+
+      if (user == null) {
+         enqueuePopup("ERROR", "Data mismatch...")
+         return
+      }
+
+      _userUpdateState.update {
+         it.copy(
+            id = userId, username = user.username, membership = user.membership
+         )
+      }
    }
 
    fun onSearchPress() {
@@ -159,14 +168,9 @@ class UsersViewModel(
 
    fun onUpdatePress() {
       viewModelScope.launch {
-         val selectedUser = _users.value.find { it.id === _selectedUserId.value }
+         val id = _userUpdateState.value.id
          val username = _userUpdateState.value.username
          val membership = _userUpdateState.value.membership
-
-         if (selectedUser == null) {
-            enqueuePopup("ERROR", "User not found...")
-            return@launch
-         }
 
          if (username.isBlank()) {
             enqueuePopup("ERROR", "Username can not be blank...")
@@ -174,14 +178,12 @@ class UsersViewModel(
          }
 
          when (val resultUpdateUserForUpdateAtApi = userUseCase.updateUserForUpdateAtApi(
-            selectedUser.id, UserForUpdate(
+            id, UserForUpdate(
                username, membership
             )
          )) {
             is Result.Error -> enqueuePopup(
-               "ERROR",
-               "Failed to update...",
-               resultUpdateUserForUpdateAtApi.error.toString()
+               "ERROR", "Failed to update...", resultUpdateUserForUpdateAtApi.error.toString()
             )
 
             is Result.Success -> {
@@ -194,7 +196,7 @@ class UsersViewModel(
 
    fun onDeletePress() {
       viewModelScope.launch {
-         val id = _selectedUserId.value
+         val id = _userUpdateState.value.id
 
          when (val resultDeleteUserAtApi = userUseCase.deleteUserAtApi(id)) {
             is Result.Error -> enqueuePopup(
@@ -241,5 +243,7 @@ data class UserCreateState(
 )
 
 data class UserUpdateState(
-   val username: String = "", val membership: Membership = Membership.FREE
+   val id: ObjectId = ObjectId(),
+   val username: String = "",
+   val membership: Membership = Membership.FREE
 )

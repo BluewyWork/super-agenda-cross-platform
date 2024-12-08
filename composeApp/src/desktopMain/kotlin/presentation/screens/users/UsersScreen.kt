@@ -246,8 +246,7 @@ fun Users(usersViewModel: UsersViewModel) {
                         ) {
                            Button(
                               onClick = {
-                                 usersViewModel.onSelectedUserChange(user.id)
-                                 usersViewModel.onUsernameToUpdateChange(user.username)
+                                 usersViewModel.onUserForUpdateSelected(user.id)
                                  usersViewModel.onStateToShowChanged(StateToShow.UPDATE)
 
                                  scope.launch {
