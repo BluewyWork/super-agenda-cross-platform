@@ -211,6 +211,10 @@ class AdminsViewModel(
    }
 }
 
+enum class BottomSheetContentState {
+   NONE, CREATE, UPDATE
+}
+
 data class Popup(
    val title: String = "",
    val description: String = "",

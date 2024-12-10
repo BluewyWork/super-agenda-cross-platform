@@ -9,6 +9,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.composables.NavigationBarWrapper
 import presentation.screens.admins.AdminsScreen
 import presentation.screens.admins.AdminsViewModel
+import presentation.screens.initial.InitialScreen
+import presentation.screens.initial.InitialViewModel
 import presentation.screens.login.LoginScreen
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersScreen
@@ -22,6 +24,14 @@ fun NavigationHost() {
       navController = navController,
       startDestination = Destinations.Login.route
    ) {
+      composable(Destinations.Initial.route) {
+         val initialViewModel = koinViewModel<InitialViewModel>()
+
+         Scaffold {
+            InitialScreen(initialViewModel, navController)
+         }
+      }
+
       composable(Destinations.Login.route) {
          val loginViewModel = koinViewModel<LoginViewModel>()
 

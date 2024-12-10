@@ -4,11 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,25 +17,40 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import presentation.Destinations
-import presentation.composables.PopupDialog
 
 // header, footer setup...
 @Composable
 fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
-   val popupsQueue by loginViewModel.popupsQueue.collectAsStateWithLifecycle()
-   val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
+   val popups by loginViewModel.popups.collectAsStateWithLifecycle()
 
-   if (popupsQueue.isNotEmpty()) {
-      val item = popupsQueue.first()
-      PopupDialog(item.first, item.second, item.third) {
-         println("dismiss")
-         println(popupsQueue.toString())
-         loginViewModel.dismissPopup()
-      }
-   }
+   if (popups.isNotEmpty()) {
+      val popup = popups.first()
 
-   if (isLoggedIn && popupsQueue.isEmpty()) {
-      navController.navigate(Destinations.Users.route)
+      AlertDialog(onDismissRequest = {
+         popup.code()
+         loginViewModel.onPopupDismissed()
+      },
+
+         title = { Text(popup.title) },
+
+         text = {
+            Column {
+               if (popup.error.isNotBlank()) {
+                  Text(popup.error)
+               }
+
+               Text(popup.description)
+            }
+         },
+
+         confirmButton = {
+            Button(onClick = {
+               popup.code()
+               loginViewModel.onPopupDismissed()
+            }) {
+               Text("OK")
+            }
+         })
    }
 
    Login(loginViewModel, navController)
@@ -48,18 +63,13 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
    val password by loginViewModel.password.collectAsStateWithLifecycle()
 
    Column(
-      modifier = Modifier
-         .fillMaxSize()
-//         .background(oneDarkProBackground)
-      ,
-      verticalArrangement = Arrangement.Center,
-      horizontalAlignment = Alignment.CenterHorizontally
+      modifier = Modifier.fillMaxSize(),
+
+      verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
    ) {
-      OutlinedTextField(
-         label = { Text("Username ") },
+      OutlinedTextField(label = { Text("Username ") },
          value = username,
-         onValueChange = { loginViewModel.onUsernameChange(it) }
-      )
+         onValueChange = { loginViewModel.onUsernameChange(it) })
 
       OutlinedTextField(
          label = { Text("Password") },
@@ -69,14 +79,12 @@ fun Login(loginViewModel: LoginViewModel, navController: NavController) {
          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
       )
 
-      val isProcessingLogin by loginViewModel.isProcessingLogin.collectAsState()
-
       Button(
          onClick = {
-            loginViewModel.onLoginPress()
+            loginViewModel.onLoginPress {
+               navController.navigate(Destinations.Users.route)
+            }
          },
-
-         enabled = !isProcessingLogin
       ) {
          Text("Login")
       }
