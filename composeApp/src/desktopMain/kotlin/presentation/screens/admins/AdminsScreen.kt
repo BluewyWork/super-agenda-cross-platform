@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
@@ -35,46 +35,53 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import presentation.Constants
-import presentation.composables.PopupDialog
 import presentation.composables.TableCell
+import presentation.ui.theme.oneDarkCustomRed
 import presentation.ui.theme.oneDarkProBackground
 import presentation.ui.theme.oneDarkProSurface
 
 @Composable
 fun AdminsScreen(adminsViewModel: AdminsViewModel) {
-   val popupsQueue by adminsViewModel.popupsQueue.collectAsStateWithLifecycle()
+   val popups by adminsViewModel.popups.collectAsStateWithLifecycle()
 
-   if (popupsQueue.isNotEmpty()) {
-      val item = popupsQueue.first()
+   if (popups.isNotEmpty()) {
+      val popup = popups.first()
 
-      PopupDialog(item.first, item.second, item.third) {
-         adminsViewModel.dismissPopup()
-      }
-   }
-
-   val loadingNonInteractable by adminsViewModel.loadingNonInteractable.collectAsStateWithLifecycle()
-
-   if (loadingNonInteractable) {
       AlertDialog(
-         onDismissRequest = {},
-         title = { Text("Loading...") },
+         onDismissRequest = {
+            popup.code()
+            adminsViewModel.onPopupDismissed()
+         },
+
+         title = { Text(popup.title) },
 
          text = {
-            Box(
-               modifier = Modifier.fillMaxWidth(),
-               contentAlignment = Alignment.Center
-            ) {
-               CircularProgressIndicator()
+            Column {
+               if (popup.error.isNotBlank()) {
+                  Text(popup.error)
+               }
+
+               Text(popup.description)
             }
          },
 
-         confirmButton = {}
+         confirmButton = {
+            Button(
+               onClick = {
+                  popup.code()
+                  adminsViewModel.onPopupDismissed()
+               }
+            ) {
+               Text("OK")
+            }
+         }
       )
    }
 
@@ -97,7 +104,13 @@ fun Admins(
 
          when (bottomSheetContentState) {
             BottomSheetContentState.NONE -> Text("Nothing to see here...")
-            BottomSheetContentState.CREATE -> BottomSheetContentForCreate(adminsViewModel)
+
+            BottomSheetContentState.CREATE -> BottomSheetContentForCreate(
+               adminsViewModel,
+               scope,
+               sheetState
+            )
+
             BottomSheetContentState.UPDATE -> BottomSheetContentForUpdate(
                adminsViewModel,
                scope,
@@ -288,7 +301,11 @@ fun BottomSheetContentForUpdate(
       ) {
          Button(
             onClick = {
-               adminsViewModel.onUpdatePress()
+               adminsViewModel.onUpdatePress {
+                  scope.launch {
+                     sheetState.hide()
+                  }
+               }
             },
 
             modifier = Modifier
@@ -319,8 +336,13 @@ fun BottomSheetContentForUpdate(
    }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetContentForCreate(adminsViewModel: AdminsViewModel) {
+fun BottomSheetContentForCreate(
+   adminsViewModel: AdminsViewModel,
+   scope: CoroutineScope,
+   sheetState: ModalBottomSheetState
+) {
    Row(
       modifier = Modifier
          .padding(Constants.SPACE.dp)
@@ -347,15 +369,23 @@ fun BottomSheetContentForCreate(adminsViewModel: AdminsViewModel) {
             label = { Text("Password") },
             value = password,
             onValueChange = { adminsViewModel.onPasswordToCreateChange(it) },
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = password != confirmPassword
          )
 
          OutlinedTextField(
             label = { Text("Confirm Password") },
             value = confirmPassword,
             onValueChange = { adminsViewModel.onConfirmPasswordToCreateChange(it) },
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = password != confirmPassword
          )
+
+         if (password != confirmPassword) {
+            Text("Passwords does not match...", color = oneDarkCustomRed)
+         }
       }
 
       Column(
@@ -365,7 +395,11 @@ fun BottomSheetContentForCreate(adminsViewModel: AdminsViewModel) {
       ) {
          Button(
             onClick = {
-               adminsViewModel.onCreatePress()
+               adminsViewModel.onCreatePress {
+                  scope.launch {
+                     sheetState.hide()
+                  }
+               }
             },
 
             modifier = Modifier

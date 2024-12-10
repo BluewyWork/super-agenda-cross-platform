@@ -18,21 +18,15 @@ import util.Result
 class AdminsViewModel(
    private val adminUseCase: AdminUseCase
 ) : ViewModel() {
-   private val _popupsQueue = MutableStateFlow<List<Triple<String, String, String>>>(emptyList())
-   val popupsQueue: StateFlow<List<Triple<String, String, String>>> = _popupsQueue
-
-   // could create a function to wrap code to automatically handle start and end of this
-   private val _loadingNonInteractable = MutableStateFlow(false)
-   val loadingNonInteractable: StateFlow<Boolean> = _loadingNonInteractable
+   private val _popups = MutableStateFlow<List<Popup>>(emptyList())
+   val popups: StateFlow<List<Popup>> = _popups
 
    private val _admins = MutableStateFlow<List<Admin>>(emptyList())
-   val admins: StateFlow<List<Admin>> = _admins
-      .onStart {
-         viewModelScope.launch {
-            refreshAdmins {}
-         }
+   val admins: StateFlow<List<Admin>> = _admins.onStart {
+      viewModelScope.launch {
+         refreshAdmins {}
       }
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), emptyList())
+   }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), emptyList())
 
    private val _adminsFiltered = MutableStateFlow<List<Admin>>(emptyList())
    val adminsFiltered: StateFlow<List<Admin>> = _adminsFiltered
@@ -57,24 +51,6 @@ class AdminsViewModel(
    private val _adminUsernameToSearch = MutableStateFlow("")
    val adminUsernameToSearch: StateFlow<String> = _adminUsernameToSearch
 
-   private suspend fun <T> withLoadingNonInteractable(block: suspend () -> T): T {
-      _loadingNonInteractable.value = true
-
-      return try {
-         block()
-      } finally {
-         _loadingNonInteractable.value = false
-      }
-   }
-
-   fun enqueuePopup(title: String, description: String, error: String = "") {
-      _popupsQueue.value = _popupsQueue.value.plus(Triple(title, description, error))
-   }
-
-   fun dismissPopup() {
-      _popupsQueue.value = _popupsQueue.value.drop(1)
-   }
-
    fun onIdToEditChange(id: ObjectId) {
       _idToEdit.value = id
    }
@@ -86,7 +62,13 @@ class AdminsViewModel(
    private fun refreshAdmins(callback: (List<Admin>) -> Unit) {
       viewModelScope.launch {
          when (val usersResult = adminUseCase.retrieveAllAdminsFromApi()) {
-            is Result.Error -> enqueuePopup("ERROR", "Failed to refresh admins...", usersResult.error.toString())
+            is Result.Error ->
+               _popups.value += Popup(
+                  "ERROR",
+                  "Failed to refresh admins...",
+                  usersResult.error.toString()
+               )
+
             is Result.Success -> {
                _admins.value = usersResult.data
                _adminsFiltered.value = usersResult.data
@@ -97,29 +79,20 @@ class AdminsViewModel(
       }
    }
 
-   fun onUpdatePress() {
+   fun onUpdatePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
-         _loadingNonInteractable.value = true
-
          val selectedAdmin = admins.value.find { it.id == _idToEdit.value }
 
          if (selectedAdmin == null) {
-            _loadingNonInteractable.value = false
-            enqueuePopup("ERROR", "Admin not found...")
+            _popups.value += Popup("ERROR", "Admin not found...")
             return@launch
          }
 
-         val updatedAdmin =
-            AdminForUpdate(usernameToEdit.value)
+         val updatedAdmin = AdminForUpdate(usernameToEdit.value)
 
-         val updateResult = adminUseCase.modifyAdminAtApi(selectedAdmin.id, updatedAdmin)
-         _loadingNonInteractable.value = false
-
-         when (updateResult) {
-            is Result.Error -> enqueuePopup(
-               "ERROR",
-               "Failed to update admin",
-               updateResult.error.toString()
+         when (val updateResult = adminUseCase.modifyAdminAtApi(selectedAdmin.id, updatedAdmin)) {
+            is Result.Error -> _popups.value += Popup(
+               "ERROR", "Failed to update admin", updateResult.error.toString()
             )
 
             is Result.Success -> {
@@ -127,7 +100,10 @@ class AdminsViewModel(
                _passwordToCreate.value = ""
                _confirmPasswordToCreate.value = ""
                refreshAdmins {}
-               enqueuePopup("INFO", "Successfully updated admin!")
+
+               _popups.value += Popup("INFO", "Successfully updated admin!") {
+                  onSuccess()
+               }
             }
          }
       }
@@ -135,21 +111,20 @@ class AdminsViewModel(
 
    fun onDeletePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
-         _loadingNonInteractable.value = true
-
-         val destroyResult = adminUseCase.destroyAdminAtApi(_idToEdit.value.toHexString())
-         _loadingNonInteractable.value = false
-
-         when (destroyResult) {
-            is Result.Error -> enqueuePopup("ERROR", "Failed to delete user...", destroyResult.error.toString())
+         when (val destroyResult = adminUseCase.destroyAdminAtApi(_idToEdit.value.toHexString())) {
+            is Result.Error -> _popups.value += Popup(
+               "ERROR", "Failed to delete user...", destroyResult.error.toString()
+            )
 
             is Result.Success -> {
                _usernameToCreate.value = ""
                _passwordToCreate.value = ""
                _confirmPasswordToCreate.value = ""
                refreshAdmins {}
-               enqueuePopup("INFO", "Successfully deleted admin!")
-               onSuccess()
+
+               _popups.value += Popup("INFO", "Successfully deleted admin!") {
+                  onSuccess()
+               }
             }
          }
       }
@@ -181,44 +156,43 @@ class AdminsViewModel(
          return
       }
 
-      _adminsFiltered.value =
-         _admins.value.filter {
-            it.username.contains(_adminUsernameToSearch.value, true)
-         }
+      _adminsFiltered.value = _admins.value.filter {
+         it.username.contains(_adminUsernameToSearch.value, true)
+      }
    }
 
-   fun onCreatePress() {
+   fun onCreatePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
-         _loadingNonInteractable.value = true
-
          val username = usernameToCreate.value
          val password = _passwordToCreate.value
          val passwordConfirm = _confirmPasswordToCreate.value
 
          if (password != passwordConfirm) {
-            enqueuePopup("ERROR", "Passwords does not match...")
-            _loadingNonInteractable.value = false
+            _popups.value += Popup("ERROR", "Passwords does not match...")
             return@launch
          }
 
          val newAdmin = Admin(
-            ObjectId(),
-            username,
-            password
+            ObjectId(), username, password
          )
 
-         val deleteResult = adminUseCase.spawnAdminAtApi(newAdmin)
-         _loadingNonInteractable.value = false
-
-         when (deleteResult) {
-            is Result.Error -> enqueuePopup("ERROR", "Failed to delete admin...", deleteResult.error.toString())
+         when (val resultCreateAdminAtApi = adminUseCase.spawnAdminAtApi(newAdmin)) {
+            is Result.Error ->
+               _popups.value += Popup(
+                  "ERROR",
+                  "Failed to create admin...",
+                  resultCreateAdminAtApi.error.toString()
+               )
 
             is Result.Success -> {
                _usernameToCreate.value = ""
                _passwordToCreate.value = ""
                _confirmPasswordToCreate.value = ""
                refreshAdmins {}
-               enqueuePopup("INFO", "Successfully created admin!")
+
+               _popups.value += Popup("INFO", "Successfully created admin", "!") {
+                  onSuccess()
+               }
             }
          }
       }
@@ -231,4 +205,15 @@ class AdminsViewModel(
          }
       }
    }
+
+   fun onPopupDismissed() {
+      _popups.value = _popups.value.drop(1)
+   }
 }
+
+data class Popup(
+   val title: String = "",
+   val description: String = "",
+   val error: String = "",
+   val code: () -> Unit = {}
+)
