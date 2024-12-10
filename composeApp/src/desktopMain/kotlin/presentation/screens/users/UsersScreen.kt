@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -38,10 +40,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import domain.models.Membership
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import presentation.Constants
 import presentation.composables.DropdownMenuGeneric
-import presentation.composables.PopupDialog
 import presentation.composables.TableCell
 import presentation.ui.theme.oneDarkCustomGreen
 import presentation.ui.theme.oneDarkCustomRed
@@ -51,15 +53,36 @@ import presentation.ui.theme.oneDarkProSurface
 
 @Composable
 fun UsersScreen(usersViewModel: UsersViewModel) {
-   val popupsQueue by usersViewModel.popupsQueue.collectAsStateWithLifecycle()
+   val popups by usersViewModel.popups.collectAsStateWithLifecycle()
 
-   if (popupsQueue.isNotEmpty()) {
-      val item = popupsQueue.first()
-      PopupDialog(item.first, item.second, item.third) {
-         println("dismiss")
-         println(popupsQueue.toString())
-         usersViewModel.dismissPopup()
-      }
+   if (popups.isNotEmpty()) {
+      val popup = popups.first()
+
+      AlertDialog(onDismissRequest = {
+         popup.code()
+         usersViewModel.onPopupDismissed()
+      },
+
+         title = { Text(popup.title) },
+
+         text = {
+            Column {
+               if (popup.error.isNotBlank()) {
+                  Text(popup.error)
+               }
+
+               Text(popup.description)
+            }
+         },
+
+         confirmButton = {
+            Button(onClick = {
+               popup.code()
+               usersViewModel.onPopupDismissed()
+            }) {
+               Text("OK")
+            }
+         })
    }
 
    Users(usersViewModel)
@@ -81,11 +104,11 @@ fun Users(usersViewModel: UsersViewModel) {
          ) {
             when (stateToShow) {
                StateToShow.CREATE -> {
-                  BottomSheetUserCreate(usersViewModel)
+                  BottomSheetUserCreate(usersViewModel, scope, sheetState)
                }
 
                StateToShow.UPDATE -> {
-                  BottomSheetUserUpdate(usersViewModel)
+                  BottomSheetUserUpdate(usersViewModel, scope, sheetState)
                }
 
                StateToShow.NONE -> scope.launch { sheetState.hide() }
@@ -96,13 +119,10 @@ fun Users(usersViewModel: UsersViewModel) {
       sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
    ) {
       Column(
-         modifier = Modifier
-            .fillMaxSize()
+         modifier = Modifier.fillMaxSize()
       ) {
          Row(
-            modifier = Modifier
-               .fillMaxWidth()
-               .padding(Constants.SPACE.dp),
+            modifier = Modifier.fillMaxWidth().padding(Constants.SPACE.dp),
 
             verticalAlignment = Alignment.CenterVertically
          ) {
@@ -112,36 +132,29 @@ fun Users(usersViewModel: UsersViewModel) {
             ) {
                val usernameToSearch by usersViewModel.usernameToSearch.collectAsStateWithLifecycle()
 
-               OutlinedTextField(
-                  label = { Text("Search Username") },
+               OutlinedTextField(label = { Text("Search Username") },
                   value = usernameToSearch,
-                  onValueChange = { usersViewModel.onUsernameToSearchChange(it) }
-               )
+                  onValueChange = { usersViewModel.onUsernameToSearchChange(it) })
 
                Spacer(modifier = Modifier.size(Constants.SPACE.dp))
 
-               Button(
-                  onClick = {
-                     usersViewModel.onSearchPress()
-                  }
-               ) {
+               Button(onClick = {
+                  usersViewModel.onSearchPress()
+               }) {
                   Icon(Icons.Default.Search, "Search")
                }
 
                Spacer(modifier = Modifier.size(Constants.SPACE.dp))
 
-               Button(
-                  onClick = {
-                     usersViewModel.onRefreshPress()
-                  }
-               ) {
+               Button(onClick = {
+                  usersViewModel.onRefreshPress()
+               }) {
                   Icon(Icons.Default.Refresh, "Refresh")
                }
             }
 
             Row(
-               modifier = Modifier
-                  .fillMaxWidth(),
+               modifier = Modifier.fillMaxWidth(),
                horizontalArrangement = Arrangement.End,
                verticalAlignment = Alignment.CenterVertically
             ) {
@@ -269,11 +282,15 @@ fun Users(usersViewModel: UsersViewModel) {
    }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
+fun BottomSheetUserUpdate(
+   usersViewModel: UsersViewModel,
+   scope: CoroutineScope,
+   sheetState: ModalBottomSheetState
+) {
    Row(
-      modifier = Modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically
+      modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
    ) {
       Column(
          modifier = Modifier.fillMaxWidth().weight(.5f),
@@ -287,8 +304,7 @@ fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
             onValueChange = { usersViewModel.onUsernameToUpdateChanged(it) },
          )
 
-         DropdownMenuGeneric(
-            Membership.entries.toTypedArray(),
+         DropdownMenuGeneric(Membership.entries.toTypedArray(),
             userUpdateState.membership,
             onValueChange = { usersViewModel.onMembershipToUpdateChanged(it) })
       }
@@ -299,7 +315,11 @@ fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
       ) {
          Button(
             onClick = {
-               usersViewModel.onUpdatePress()
+               usersViewModel.onUpdatePress {
+                  scope.launch {
+                     sheetState.hide()
+                  }
+               }
             },
 
             modifier = Modifier.fillMaxWidth()
@@ -310,7 +330,11 @@ fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
 
          Button(
             onClick = {
-               usersViewModel.onDeletePress()
+               usersViewModel.onDeletePress {
+                  scope.launch {
+                     sheetState.hide()
+                  }
+               }
             },
 
             modifier = Modifier.fillMaxWidth()
@@ -322,8 +346,13 @@ fun BottomSheetUserUpdate(usersViewModel: UsersViewModel) {
    }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetUserCreate(usersViewModel: UsersViewModel) {
+fun BottomSheetUserCreate(
+   usersViewModel: UsersViewModel,
+   scope: CoroutineScope,
+   sheetState: ModalBottomSheetState
+) {
    val userCreateState by usersViewModel.userCreateState.collectAsStateWithLifecycle()
 
    Row(
@@ -332,11 +361,9 @@ fun BottomSheetUserCreate(usersViewModel: UsersViewModel) {
       Column(
          modifier = Modifier.weight(.5f).fillMaxWidth()
       ) {
-         OutlinedTextField(
-            label = { Text("Username") },
+         OutlinedTextField(label = { Text("Username") },
             value = userCreateState.username,
-            onValueChange = { usersViewModel.onUsernameForCreateChanged(it) }
-         )
+            onValueChange = { usersViewModel.onUsernameForCreateChanged(it) })
 
          OutlinedTextField(
             label = { Text("Password") },
@@ -365,8 +392,13 @@ fun BottomSheetUserCreate(usersViewModel: UsersViewModel) {
          modifier = Modifier.weight(.5f).fillMaxWidth()
       ) {
          Button(
-            onClick = { usersViewModel.onCreatePressed() },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+               usersViewModel.onCreatePressed {
+                  scope.launch {
+                     sheetState.hide()
+                  }
+               }
+            }, modifier = Modifier.fillMaxWidth()
          ) {
             Text("Create")
          }

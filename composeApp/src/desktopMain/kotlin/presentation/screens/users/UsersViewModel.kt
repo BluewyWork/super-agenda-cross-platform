@@ -21,8 +21,8 @@ import util.Result
 class UsersViewModel(
    private val userUseCase: UserUseCase
 ) : ViewModel() {
-   private val _popupsQueue = MutableStateFlow<List<Triple<String, String, String>>>(emptyList())
-   val popupsQueue: StateFlow<List<Triple<String, String, String>>> = _popupsQueue
+   private val _popups = MutableStateFlow<List<Popup>>(emptyList())
+   val popups: StateFlow<List<Popup>> = _popups
 
    private val _users = MutableStateFlow<List<UserForAdminView>>(emptyList())
    val users: StateFlow<List<UserForAdminView>> = _users.onStart {
@@ -44,17 +44,11 @@ class UsersViewModel(
    private val _stateToShow = MutableStateFlow(StateToShow.NONE)
    val stateToShow: StateFlow<StateToShow> = _stateToShow
 
-   // Utilities
-
-   fun enqueuePopup(title: String, description: String, error: String = "") {
-      _popupsQueue.value = _popupsQueue.value.plus(Triple(title, description, error))
-   }
-
-   fun dismissPopup() {
-      _popupsQueue.value = _popupsQueue.value.drop(1)
-   }
-
    // Main
+   fun onPopupDismissed() {
+      _popups.value = _popups.value.drop(1)
+   }
+
    fun onStateToShowChanged(stateToShow: StateToShow) {
       _stateToShow.value = stateToShow
    }
@@ -67,7 +61,7 @@ class UsersViewModel(
       val user = _users.value.find { it.id == userId }
 
       if (user == null) {
-         enqueuePopup("ERROR", "Data mismatch...")
+         _popups.value += Popup("ERROR", "Data mismatch...")
          return
       }
 
@@ -128,24 +122,24 @@ class UsersViewModel(
       }
    }
 
-   fun onCreatePressed() {
+   fun onCreatePressed(onSuccess: () -> Unit) {
       viewModelScope.launch {
          val username = userCreateState.value.username
          val password = userCreateState.value.password
          val passwordConfirm = userCreateState.value.passwordConfirm
 
          if (username.isBlank()) {
-            enqueuePopup("ERROR", "Username can not be blank...")
+            _popups.value += Popup("ERROR", "Username can not be blank...")
             return@launch
          }
 
          if (password.isBlank()) {
-            enqueuePopup("ERROR", "Password can not be blank...")
+            _popups.value += Popup("ERROR", "Password can not be blank...")
             return@launch
          }
 
          if (password != passwordConfirm) {
-            enqueuePopup("ERROR", "Passwords does not match...")
+            _popups.value += Popup("ERROR", "Passwords does not match...")
             return@launch
          }
 
@@ -153,28 +147,30 @@ class UsersViewModel(
             userUseCase.createUserAtApi(UserForCreate(ObjectId(), username, password))
 
          when (resultCreateUserForCreateAtApi) {
-            is Result.Error -> enqueuePopup(
+            is Result.Error -> _popups.value += Popup(
                "ERROR", "Failed to create user...", resultCreateUserForCreateAtApi.error.toString()
             )
 
             is Result.Success -> {
-               enqueuePopup("INFO", "Successfully created user!")
                resetUserCreateState()
                refreshUsers {}
-               _stateToShow.value = StateToShow.NONE
+
+               _popups.value += Popup("INFO", "Successfully created user!") {
+                  onSuccess()
+               }
             }
          }
       }
    }
 
-   fun onUpdatePress() {
+   fun onUpdatePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
          val id = _userUpdateState.value.id
          val username = _userUpdateState.value.username
          val membership = _userUpdateState.value.membership
 
          if (username.isBlank()) {
-            enqueuePopup("ERROR", "Username can not be blank...")
+            _popups.value += Popup("ERROR", "Username can not be blank...")
             return@launch
          }
 
@@ -183,32 +179,36 @@ class UsersViewModel(
                username, membership
             )
          )) {
-            is Result.Error -> enqueuePopup(
+            is Result.Error -> _popups.value += Popup(
                "ERROR", "Failed to update...", resultUpdateUserForUpdateAtApi.error.toString()
             )
 
             is Result.Success -> {
-               enqueuePopup("INFO", "Successfully updated!")
                refreshUsers {}
-               _stateToShow.value = StateToShow.NONE
+
+               _popups.value += Popup("INFO", "Successfully updated!") {
+                  onSuccess()
+               }
             }
          }
       }
    }
 
-   fun onDeletePress() {
+   fun onDeletePress(onSuccess: () -> Unit) {
       viewModelScope.launch {
          val id = _userUpdateState.value.id
 
          when (val resultDeleteUserAtApi = userUseCase.deleteUserAtApi(id)) {
-            is Result.Error -> enqueuePopup(
+            is Result.Error -> _popups.value += Popup(
                "ERROR", "Failed to delete user...", resultDeleteUserAtApi.error.toString()
             )
 
             is Result.Success -> {
-               enqueuePopup("INFO", "Successfully deleted user!")
                refreshUsers {}
-               _stateToShow.value = StateToShow.NONE
+
+               _popups.value += Popup("INFO", "Successfully deleted user!") {
+                  onSuccess()
+               }
             }
          }
       }
@@ -217,7 +217,7 @@ class UsersViewModel(
    fun refreshUsers(callback: (List<UserForAdminView>) -> Unit) {
       viewModelScope.launch {
          when (val usersResult = userUseCase.retrieveAllUsersForAdminViewFromApi()) {
-            is Result.Error -> enqueuePopup(
+            is Result.Error -> _popups.value += Popup(
                "ERROR", "Failed to refresh users...", usersResult.error.toString()
             )
 
@@ -249,4 +249,11 @@ data class UserUpdateState(
    val id: ObjectId = ObjectId(),
    val username: String = "",
    val membership: Membership = Membership.FREE
+)
+
+data class Popup(
+   val title: String = "",
+   val description: String = "",
+   val error: String = "",
+   val code: () -> Unit = {}
 )
