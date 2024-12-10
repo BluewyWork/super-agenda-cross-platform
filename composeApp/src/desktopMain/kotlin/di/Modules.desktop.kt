@@ -23,6 +23,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import presentation.screens.admins.AdminsViewModel
+import presentation.screens.initial.InitialViewModel
 import presentation.screens.login.LoginViewModel
 import presentation.screens.users.UsersViewModel
 import java.io.File
@@ -61,6 +62,7 @@ actual val platformModule: Module = module {
    singleOf(::AdminUseCase)
 
    // viewmodels
+   viewModelOf(::InitialViewModel)
    viewModelOf(::LoginViewModel)
    viewModelOf(::UsersViewModel)
    viewModelOf(::AdminsViewModel)

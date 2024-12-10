@@ -14,15 +14,29 @@ import presentation.Constants
 class InitialViewModel(
    private val authenticationUseCase: AuthenticationUseCase
 ) : ViewModel() {
-   private val _loggedIn = MutableStateFlow(false)
+   private val _loggedIn = MutableStateFlow(LoggedInState.LOADING)
 
-   val loggedIn: StateFlow<Boolean> = _loggedIn
+   val loggedIn: StateFlow<LoggedInState> = _loggedIn
       .onStart { checkIfLoggedIn() }
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT), false)
+      .stateIn(
+         viewModelScope,
+         SharingStarted.WhileSubscribed(Constants.FLOW_TIMEOUT),
+         LoggedInState.LOADING
+      )
 
    private fun checkIfLoggedIn() {
       viewModelScope.launch {
-         _loggedIn.value = authenticationUseCase.checkIfLoggedIn()
+         _loggedIn.value = if (authenticationUseCase.checkIfLoggedIn()) {
+            LoggedInState.LOGGED_IN
+         } else {
+            LoggedInState.LOGGED_OUT
+         }
       }
    }
+}
+
+enum class LoggedInState {
+   LOADING,
+   LOGGED_IN,
+   LOGGED_OUT
 }

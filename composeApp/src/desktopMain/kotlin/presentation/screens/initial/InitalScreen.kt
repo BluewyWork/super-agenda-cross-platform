@@ -10,9 +10,15 @@ import presentation.Destinations
 fun InitialScreen(initialViewModel: InitialViewModel, navController: NavController) {
    val loggedIn by initialViewModel.loggedIn.collectAsStateWithLifecycle()
 
-   if (loggedIn) {
-      navController.navigate(Destinations.Users.route)
-   } else {
-      navController.navigate(Destinations.Login.route)
+   when (loggedIn) {
+      LoggedInState.LOADING -> {}
+
+      LoggedInState.LOGGED_IN -> {
+         navController.navigate(Destinations.Users.route)
+      }
+
+      LoggedInState.LOGGED_OUT -> {
+         navController.navigate(Destinations.Login.route)
+      }
    }
 }

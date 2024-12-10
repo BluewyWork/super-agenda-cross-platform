@@ -22,7 +22,7 @@ fun NavigationHost() {
 
    NavHost(
       navController = navController,
-      startDestination = Destinations.Login.route
+      startDestination = Destinations.Initial.route
    ) {
       composable(Destinations.Initial.route) {
          val initialViewModel = koinViewModel<InitialViewModel>()
