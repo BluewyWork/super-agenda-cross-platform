@@ -6,7 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.composables.NavigationBarWrapper
+import presentation.screens.NavigationBarWrapper.NavigationBarWrapper
+import presentation.screens.NavigationBarWrapper.NavigationWrapperViewModel
 import presentation.screens.admins.AdminsScreen
 import presentation.screens.admins.AdminsViewModel
 import presentation.screens.initial.InitialScreen
@@ -43,16 +44,18 @@ fun NavigationHost() {
 
       composable(Destinations.Users.route) {
          val usersViewModel = koinViewModel<UsersViewModel>()
+         val navigationWrapperViewModel = koinViewModel<NavigationWrapperViewModel>()
 
-         NavigationBarWrapper(navController) {
+         NavigationBarWrapper(navigationWrapperViewModel, navController) {
             UsersScreen(usersViewModel)
          }
       }
 
       composable(Destinations.Admins.route) {
          val adminsViewModel = koinViewModel<AdminsViewModel>()
+         val navigationWrapperViewModel = koinViewModel<NavigationWrapperViewModel>()
 
-         NavigationBarWrapper(navController) {
+         NavigationBarWrapper(navigationWrapperViewModel, navController) {
             AdminsScreen(adminsViewModel)
          }
       }

@@ -1,4 +1,4 @@
-package presentation.composables
+package presentation.screens.NavigationBarWrapper
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -31,23 +31,30 @@ import kotlinx.coroutines.launch
 import presentation.Destinations
 
 @Composable
-fun NavigationBarWrapper(navController: NavController, content: @Composable () -> Unit) {
+fun NavigationBarWrapper(
+   navigationWrapperViewModel: NavigationWrapperViewModel,
+   navController: NavController,
+   content: @Composable () -> Unit
+) {
    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
    val scope = rememberCoroutineScope()
 
    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
       ModalDrawer(
          drawerState = drawerState,
+
          drawerContent = {
-            Text("It's Empty")
+            Button(onClick = {
+               navigationWrapperViewModel.onLogoutPressed { navController.navigate(Destinations.Login.route) }
+            }) {
+               Text("Logout")
+            }
          },
       ) {
          CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Scaffold(
-               topBar = {
-                  TopBar(navController, scope, drawerState)
-               }
-            ) {
+            Scaffold(topBar = {
+               TopBar(navController, scope, drawerState)
+            }) {
                Row {
                   SideBar(navController)
                   content()
@@ -63,39 +70,33 @@ fun TopBar(navController: NavController, scope: CoroutineScope, drawerState: Dra
    val currentBackStackEntry = navController.currentBackStackEntryAsState()
    val currentRoute = currentBackStackEntry.value?.destination?.route
 
-   TopAppBar(
-      title = {
-         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-         ) {
-            if (currentRoute != null) {
-               Text(currentRoute.uppercase())
-            } else {
-               Text("Unknown")
-            }
+   TopAppBar(title = {
+      Row(
+         modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
+      ) {
+         if (currentRoute != null) {
+            Text(currentRoute.uppercase())
+         } else {
+            Text("Unknown")
          }
-      },
+      }
+   },
 
       navigationIcon = {
          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
          ) {
-            Button(
-               onClick = {
-                  scope.launch {
-                     drawerState.apply {
-                        if (isClosed) open() else close()
-                     }
+            Button(onClick = {
+               scope.launch {
+                  drawerState.apply {
+                     if (isClosed) open() else close()
                   }
                }
-            ) {
+            }) {
                Icon(Icons.Default.Menu, "Menu")
             }
          }
-      }
-   )
+      })
 }
 
 @Composable
@@ -106,22 +107,16 @@ fun SideBar(navController: NavController) {
    NavigationRail(
       modifier = Modifier.width(100.dp)
    ) {
-      NavigationRailItem(
-         modifier = Modifier
-            .fillMaxWidth(),
+      NavigationRailItem(modifier = Modifier.fillMaxWidth(),
 
          selected = currentRoute == Destinations.Users.route,
          onClick = { navController.navigate(Destinations.Users.route) },
-         icon = { Text("Users") }
-      )
+         icon = { Text("Users") })
 
-      NavigationRailItem(
-         modifier = Modifier
-            .fillMaxWidth(),
+      NavigationRailItem(modifier = Modifier.fillMaxWidth(),
 
          selected = currentRoute == Destinations.Admins.route,
          onClick = { navController.navigate(Destinations.Admins.route) },
-         icon = { Text("Admins") }
-      )
+         icon = { Text("Admins") })
    }
 }

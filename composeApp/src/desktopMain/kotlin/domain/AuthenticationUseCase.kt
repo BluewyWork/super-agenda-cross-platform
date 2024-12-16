@@ -26,4 +26,8 @@ class AuthenticationUseCase(
          is Result.Success -> true
       }
    }
+
+   suspend fun logout(): AppResult<Unit> {
+      return authenticationRepository.deleteTokenAtDatabase()
+   }
 }

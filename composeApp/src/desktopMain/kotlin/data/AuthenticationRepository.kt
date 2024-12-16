@@ -41,4 +41,15 @@ class AuthenticationRepository(
          }
       }
    }
+
+   suspend fun deleteTokenAtDatabase(): AppResult<Unit> {
+      return withContext(Dispatchers.IO) {
+         try {
+            tokenDao.delete()
+            Result.Success(Unit)
+         } catch (e: Exception) {
+            Result.Error(AppError.DatabaseError.UNKNOWN)
+         }
+      }
+   }
 }

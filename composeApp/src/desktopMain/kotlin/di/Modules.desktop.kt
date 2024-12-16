@@ -22,6 +22,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import presentation.screens.NavigationBarWrapper.NavigationWrapperViewModel
 import presentation.screens.admins.AdminsViewModel
 import presentation.screens.initial.InitialViewModel
 import presentation.screens.login.LoginViewModel
@@ -66,6 +67,7 @@ actual val platformModule: Module = module {
    viewModelOf(::LoginViewModel)
    viewModelOf(::UsersViewModel)
    viewModelOf(::AdminsViewModel)
+   viewModelOf(::NavigationWrapperViewModel)
 
    // database (room)
    single {
